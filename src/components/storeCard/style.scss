@@ -1,0 +1,77 @@
+.store-card {
+  display: inline-block;
+  .image {
+    width: 300;
+    height: 130px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    border: 1px solid #000000;
+    border-radius: 5px;
+    overflow: hidden;
+    transition: all 0.6s ease;
+    -webkit-transition: all 0.6s ease;
+
+    &:hover {
+      transform: translateY(-5px);
+      box-shadow: 0px 5px 18px 0px rgba(0, 0, 0, 0.3);
+    }
+  }
+  .discount {
+    position: relative;
+    left: 370px;
+    top: -13px;
+    font-size: 0.9rem;
+    background-repeat: no-repeat;
+    background-size: 10%;
+  }
+  .greenBox {
+    width: 40px;
+    height: 20px;
+    background-color: green;
+    position: relative;
+    left: 363px;
+    top: 8px;
+    overflow: hidden;
+  }
+
+  .title {
+    padding: 8px 0px;
+    font-size: 1.8rem;
+  }
+
+  .time-period {
+    font-size: 1.2rem;
+    line-height: 0.9rem;
+    padding-bottom: 12px;
+  }
+
+  .subtitle {
+    color: #a5a5a5;
+    font-size: 1.4rem;
+  }
+
+  //   $breakpoints: (
+  //     phone: 640px,
+  //     tablet: 768px,
+  //     desktop: 1024px
+  //   ) !default;
+
+  //   @include media(">=tablet", "<desktop") {
+  //     .image {
+  //       height: 110px;
+  //     }
+  //   }
+  //   @include media("<=tablet", ">phone") {
+  //     padding-bottom: 15px;
+  //     .image {
+  //       height: 140px;
+  //     }
+  //   }
+  //   @include media("<=phone") {
+  //     padding-bottom: 15px;
+  //     .image {
+  //       height: 160px;
+  //     }
+  //   }
+}

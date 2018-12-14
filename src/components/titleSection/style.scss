@@ -1,0 +1,97 @@
+.title {
+  font-family: serif;
+  font-size: 36px;
+  font-weight: 400;
+  font-style: italic;
+  line-height: 44px;
+  margin: 0 0 12px;
+  text-align: center;
+  // color: rgb(255, 136, 0);
+}
+.btnhvr {
+  cursor: pointer;
+  transition: transform ease-in 0.1s;
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0px 2px 9px 0px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.hiding {
+  transition: transform ease-out 2s;
+}
+
+.subtitle {
+  color: rgb(0, 0, 0);
+  font-family: "Droid Sans", sans-serif;
+  font-size: 25px;
+  font-weight: 400;
+  line-height: 24px;
+  margin: 0 0 14px;
+  text-align: center;
+}
+
+.a {
+  color: #b48608;
+  text-decoration: none;
+  border-bottom: 1px solid #4c3a07;
+
+  &:hover {
+    color: #fff;
+    background: #b48608;
+  }
+}
+
+.date {
+  border-top: 1px solid #fff;
+  position: relative;
+  top: 20px;
+  margin-bottom: 30px;
+}
+
+.date span {
+  color: #000;
+  text-decoration: none;
+  font-style: italic;
+  font-size: 13px;
+  text-align: center;
+  padding: 2px 5px;
+  background: #fff;
+  width: 120px;
+  margin: 0 auto;
+  display: block;
+  position: relative;
+  top: -10px;
+  font-family: "Droid serif", serif;
+}
+
+.a.btn {
+  font-family: "Droid serif", serif;
+  background: #b48608;
+  padding: 4px 7px;
+  color: #000;
+  text-decoration: none;
+  margin: 0 auto;
+  width: 100%;
+  width: 120px;
+  margin: 0 auto;
+  display: block;
+  text-align: center;
+  font-style: italic;
+  :hover {
+    color: #000;
+    background: #fff;
+  }
+}
+
+.left {
+  float: left;
+  margin: 0 5% 30px 0;
+  width: 30%;
+}
+
+.right {
+  float: right;
+  margin: 0 0 30px 0;
+  width: 30%;
+}

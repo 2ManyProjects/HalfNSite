@@ -1,0 +1,63 @@
+.storeCardSection {
+  padding-top: 20px;
+  padding-left: 20px;
+  padding-right: 20px;
+  position: relative;
+  width: 900px;
+  margin: 0 auto;
+  height: 200px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.width {
+  width: 120px;
+  position: relative;
+  margin: 0 auto;
+  height: 500px;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.slider-wrapper {
+  position: relative;
+  height: 100%;
+  width: 100%;
+}
+
+.arrow {
+  height: 50px;
+  width: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 157, 0, 0.448);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: transform ease-in 0.1s;
+  &:hover {
+    transform: translateY(-5px);
+    box-shadow: 0px 5px 18px 0px rgba(0, 0, 0, 0.3);
+  }
+}
+
+.nextArrow {
+  position: absolute;
+  top: 30%;
+  right: -20px;
+  z-index: 999;
+  color: rgb(209, 202, 202);
+}
+
+.backArrow {
+  position: absolute;
+  top: 30%;
+  left: -20px;
+  z-index: 999;
+  // color: rgb(248, 2, 2);
+}
+
+.fa-arrow-right:before,
+.fa-arrow-left:before {
+  // color: rgb(156, 114, 114);
+}
