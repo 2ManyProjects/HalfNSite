@@ -72,7 +72,7 @@ class titleSection extends Component {
   renderTagline = () => {
     const { vote } = this.state;
     if (vote === -1) {
-      return <h1 />;
+      return;
     } else {
       return <h1>{this.state.tagline}</h1>;
     }
