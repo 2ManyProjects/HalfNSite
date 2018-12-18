@@ -2,15 +2,27 @@ import React, { Component } from "react";
 import "./App.css";
 //import NavBar from "./components/navBar";
 //import Counters from "./components/counters";
+import PropTypes from "prop-types";
 import StoreCardSection from "./components/storeCardSection/index";
 import TitleSection from "./components/titleSection/index";
 import StoreSearch from "./components/storeSearch/index";
+import Login from "./components/dialog/login";
+import { withStyles } from "@material-ui/core/styles";
 // import API_K from "./keys";
 
 // const APPLICATION_ID = "06FB428D-E80E-91BC-FF1A-23DEB5E08000";
 // const API_KEY = API_K;
 // const serverURL =
 //   "https://api.backendless.com/" + API_KEY + "/" + APPLICATION_ID + "/";
+
+const styles = theme => ({
+  button: {
+    margin: theme.spacing.unit
+  },
+  input: {
+    display: "none"
+  }
+});
 
 class App extends Component {
   state = {
@@ -69,10 +81,21 @@ class App extends Component {
     if (counters[index].value >= 0) this.setState({ counters });
   };
 
+  login = () => {
+    console.log("clicked");
+    return <Login />;
+  };
+
   render() {
     console.log("App - Rendered");
+
+    /** Call the plugin */
+    const { classes } = this.props;
     return (
       <React.Fragment>
+        <span style={{ flexDirection: "row" }}>
+          <Login />
+        </span>
         <TitleSection />
         {/* <NavBar
           totalcounters={this.state.counters.filter(c => c.value > 0).length}
@@ -96,4 +119,8 @@ class App extends Component {
   }
 }
 
-export default App;
+App.propTypes = {
+  classes: PropTypes.object.isRequired
+};
+
+export default withStyles(styles)(App);

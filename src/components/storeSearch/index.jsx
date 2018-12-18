@@ -292,6 +292,7 @@ class Search extends Component {
             onKeyPress={this.handlePress}
           />
           <Suggestions results={this.state.results} />
+          <br />
           <center>
             <ReactTable
               data={this.state.tableData}
