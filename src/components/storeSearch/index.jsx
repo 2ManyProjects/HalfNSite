@@ -135,7 +135,9 @@ class Search extends Component {
             .currentAmnt,
           rate: this.state.userData[i].storeData.storeDeals[x].rate,
           totalAmnt: this.state.userData[i].storeData.storeDeals[x].totalAmnt,
-          text: this.state.userData[i].storeData.storeDeals[x].text
+          text: this.state.userData[i].storeData.storeDeals[x].text,
+          selected: false,
+          selectedAmnt: 0
         };
         deals.push(tempData);
       }
@@ -144,6 +146,12 @@ class Search extends Component {
         name: this.state.userData[i].name,
         transactions: this.state.userData[i].sellnum,
         rating: this.state.userData[i].rating,
+        messageID: this.state.userData[i].messageID,
+        objectID: this.state.userData[i].objectId,
+        sellnum: this.state.userData[i].sellnum,
+        buynum: this.state.userData[i].buynum,
+        email: this.state.userData[i].email,
+        profile: this.state.userData[i].profile,
         deals: deals
       };
       data.push(tempData);
@@ -210,12 +218,13 @@ class Search extends Component {
     );
   };
 
-  sendTestEmail = e => {
+  sendTestEmail = (e, props) => {
     e.preventDefault();
+    console.log("DATA", props);
     const jsonData = {
       subject: "New MESSAGE",
       bodyparts: {
-        textmessage: "New Message"
+        textmessage: props.objectID
       },
       to: ["hello.half.n.half@gmail.com"]
     };
@@ -232,6 +241,20 @@ class Search extends Component {
 
   render() {
     const columns = [
+      {
+        Header: "Select",
+        id: "button",
+        accessor: d => d,
+        maxWidth: 100,
+        Cell: props => (
+          <button
+            onClick={e => this.sendTestEmail(e, props.original)}
+            className="btn btn-secondary btn-sm m-2 btnhvr"
+          >
+            Send Email
+          </button>
+        ) // Custom cell components!
+      },
       {
         Header: "Name",
         accessor: "name",
@@ -268,12 +291,6 @@ class Search extends Component {
             onChange={this.handleInputChange}
             onKeyPress={this.handlePress}
           />
-          <button
-            onClick={this.sendTestEmail}
-            className="btn btn-secondary btn-sm m-2 btnhvr"
-          >
-            Send Email
-          </button>
           <Suggestions results={this.state.results} />
           <center>
             <ReactTable
