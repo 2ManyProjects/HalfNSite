@@ -78,14 +78,11 @@ class titleSection extends Component {
     }
   };
 
-  renderTitleText = text => {
-    return <div className="title">{text}</div>;
-  };
   render() {
     return (
       <div>
         <center>
-          {this.renderTitleText("HalfNHalf")}
+          <br />
           <div hidden={this.getHidden()} className="subtitle">
             Help us choose our tag line
           </div>

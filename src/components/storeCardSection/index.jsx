@@ -1,6 +1,8 @@
 import React, { Component } from "react";
 import StoreCard from "../storeCard/index";
 import sportcheklogo from "../../logos/sportchek.png";
+import fossil from "../../logos/fossil.png";
+import bestbuy from "../../logos/bestbuy.png";
 import "./style.scss";
 
 class storeCardSection extends Component {
@@ -11,12 +13,12 @@ class storeCardSection extends Component {
       stores: [
         {
           id: 0,
-          logo: sportcheklogo,
-          colour: "#000000",
-          title: "Sportschek",
-          link: "https://www.sportchek.ca/",
-          largestDiscount: "50",
-          contrastColor: "#FFFFFF"
+          logo: fossil,
+          colour: "#FFFFFF",
+          title: "Fossil",
+          link: "https://www.fossil.com/us/en.html",
+          largestDiscount: "75",
+          contrastColor: "#000000"
         },
         {
           id: 1,
@@ -29,12 +31,12 @@ class storeCardSection extends Component {
         },
         {
           id: 2,
-          logo: sportcheklogo,
-          colour: "#000000",
-          title: "Sportschek",
-          link: "https://www.sportchek.ca/",
+          logo: bestbuy,
+          colour: "#0A4ABF",
+          title: "Best Buy",
+          link: "https://www.bestbuy.ca/",
           largestDiscount: "50",
-          contrastColor: "#FFFFFF"
+          contrastColor: "#000000"
         },
         {
           id: 3,

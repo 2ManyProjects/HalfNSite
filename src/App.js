@@ -1,20 +1,9 @@
 import React, { Component } from "react";
 import "./App.css";
-//import NavBar from "./components/navBar";
-//import Counters from "./components/counters";
 import PropTypes from "prop-types";
-import StoreCardSection from "./components/storeCardSection/index";
-import TitleSection from "./components/titleSection/index";
-import StoreSearch from "./components/storeSearch/index";
+import HomePage from "./components/homePage/index";
 import Login from "./components/dialog/login";
 import { withStyles } from "@material-ui/core/styles";
-// import API_K from "./keys";
-
-// const APPLICATION_ID = "06FB428D-E80E-91BC-FF1A-23DEB5E08000";
-// const API_KEY = API_K;
-// const serverURL =
-//   "https://api.backendless.com/" + API_KEY + "/" + APPLICATION_ID + "/";
-
 const styles = theme => ({
   button: {
     margin: theme.spacing.unit
@@ -26,18 +15,10 @@ const styles = theme => ({
 
 class App extends Component {
   state = {
-    maxId: 4,
-    counters: [
-      { id: 1, value: 0 },
-      { id: 2, value: 0 },
-      { id: 3, value: 0 },
-      { id: 4, value: 0 }
-    ],
     userData: {}
   };
 
   componentDidMount() {
-    //make ajax calls for server
     console.log("App - Mounted");
   }
 
@@ -49,52 +30,6 @@ class App extends Component {
     return this.state.userData["user-token"];
   };
 
-  handleDelete = counterId => {
-    const counters = this.state.counters.filter(c => c.id !== counterId);
-    this.setState({ counters: counters });
-    console.log("delete", counterId);
-  };
-  handleCreate = () => {
-    const newId = this.state.maxId + 1;
-    const counters = this.state.counters.concat({
-      id: newId,
-      value: 0
-    });
-    this.setState({ counters: counters });
-    this.setState({ maxId: newId });
-  };
-
-  handleReset = () => {
-    const counters = this.state.counters.map(c => {
-      c.value = 0;
-      return c;
-    });
-
-    this.setState({ counters });
-  };
-
-  handleIncrement = counter => {
-    const counters = [...this.state.counters];
-    const index = counters.indexOf(counter);
-    counters[index] = { ...counter };
-    counters[index].value++;
-
-    this.setState({ counters });
-  };
-
-  handleDecrement = counter => {
-    const counters = [...this.state.counters];
-    const index = counters.indexOf(counter);
-    counters[index] = { ...counter };
-    counters[index].value--;
-    if (counters[index].value >= 0) this.setState({ counters });
-  };
-
-  login = () => {
-    console.log("clicked");
-    return <Login />;
-  };
-
   render() {
     console.log("App - Rendered");
 
@@ -103,8 +38,29 @@ class App extends Component {
     return (
       <React.Fragment>
         <Login onInit={this.initUserdata} getAuth={this.getAuthToken} />
-        <TitleSection />
-        {/* <NavBar
+        <HomePage />
+      </React.Fragment>
+    );
+  }
+}
+
+App.propTypes = {
+  classes: PropTypes.object.isRequired
+};
+
+export default withStyles(styles)(App);
+
+//import NavBar from "./components/navBar";
+//import Counters from "./components/counters";
+// maxId: 4,
+// counters: [
+//   { id: 1, value: 0 },
+//   { id: 2, value: 0 },
+//   { id: 3, value: 0 },
+//   { id: 4, value: 0 }
+// ],
+
+/* <NavBar
           totalcounters={this.state.counters.filter(c => c.value > 0).length}
         />
         <main className="container">
@@ -116,18 +72,45 @@ class App extends Component {
             onCreate={this.handleCreate}
             counters={this.state.counters}
           />
-        </main> */}
-        <StoreCardSection />
-        <center>
-          <StoreSearch />
-        </center>
-      </React.Fragment>
-    );
-  }
-}
+        </main> */
 
-App.propTypes = {
-  classes: PropTypes.object.isRequired
-};
+// handleDelete = counterId => {
+//   const counters = this.state.counters.filter(c => c.id !== counterId);
+//   this.setState({ counters: counters });
+//   console.log("delete", counterId);
+// };
+// handleCreate = () => {
+//   const newId = this.state.maxId + 1;
+//   const counters = this.state.counters.concat({
+//     id: newId,
+//     value: 0
+//   });
+//   this.setState({ counters: counters });
+//   this.setState({ maxId: newId });
+// };
 
-export default withStyles(styles)(App);
+// handleReset = () => {
+//   const counters = this.state.counters.map(c => {
+//     c.value = 0;
+//     return c;
+//   });
+
+//   this.setState({ counters });
+// };
+
+// handleIncrement = counter => {
+//   const counters = [...this.state.counters];
+//   const index = counters.indexOf(counter);
+//   counters[index] = { ...counter };
+//   counters[index].value++;
+
+//   this.setState({ counters });
+// };
+
+// handleDecrement = counter => {
+//   const counters = [...this.state.counters];
+//   const index = counters.indexOf(counter);
+//   counters[index] = { ...counter };
+//   counters[index].value--;
+//   if (counters[index].value >= 0) this.setState({ counters });
+// };
