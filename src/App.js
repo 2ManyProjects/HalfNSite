@@ -32,13 +32,22 @@ class App extends Component {
       { id: 2, value: 0 },
       { id: 3, value: 0 },
       { id: 4, value: 0 }
-    ]
+    ],
+    userData: {}
   };
 
   componentDidMount() {
     //make ajax calls for server
     console.log("App - Mounted");
   }
+
+  initUserdata = jsonData => {
+    this.setState({ userData: jsonData });
+  };
+
+  getAuthToken = () => {
+    return this.state.userData["user-token"];
+  };
 
   handleDelete = counterId => {
     const counters = this.state.counters.filter(c => c.id !== counterId);
@@ -93,9 +102,7 @@ class App extends Component {
     const { classes } = this.props;
     return (
       <React.Fragment>
-        <span style={{ flexDirection: "row" }}>
-          <Login />
-        </span>
+        <Login onInit={this.initUserdata} getAuth={this.getAuthToken} />
         <TitleSection />
         {/* <NavBar
           totalcounters={this.state.counters.filter(c => c.value > 0).length}
