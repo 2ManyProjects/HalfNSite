@@ -113,11 +113,13 @@ class Login extends Component {
     formErrors: {
       registerEmail: "",
       registerPassword: "",
-      registerName: ""
+      registerName: "",
+      registrationError: ""
     },
     loginErrors: {
       username: "",
-      password: ""
+      password: "",
+      loginError: ""
     },
     registerName: "",
     registerPassword: "",
@@ -160,6 +162,55 @@ class Login extends Component {
     if (x === 0) this.setState({ openLogin: false, openRegister: false });
     else this.setState({ openRegister: false, openLogin: false });
   };
+  handleRegister = () => {
+    let formErrors = this.state.formErrors;
+    const username = this.state.registerName;
+    const password = this.state.registerPassword;
+    const email = this.state.registerEmail;
+    const profileData = username + "#" + email + "#0#0#";
+    const self = this;
+
+    const jsonData = {
+      email: email,
+      name: username,
+      password: password,
+      profileData: profileData
+    };
+    axios
+      .post(serverURL + "users/register", jsonData)
+      .then(function(response) {
+        console.log("Register", response.data);
+        self.setState({ openRegister: false, openLogin: true });
+        const objID = response.data.objectId;
+        const msging = {
+          Received: "",
+          allMsgs: "",
+          name: username,
+          userID: objID
+        };
+        axios
+          .post(serverURL + "data/Messaging", msging)
+          .then(function(response) {
+            console.log("Messaging", response.data);
+            //self.handleClose();
+          })
+          .catch(function(error) {
+            console.log("Error", error.message);
+          });
+      })
+      .catch(function(error) {
+        formErrors.password = "";
+        formErrors.email = "";
+        formErrors.username = "";
+
+        formErrors.registrationError = error.message;
+
+        self.setState({
+          formErrors: formErrors
+        });
+        console.log("Error", error.message);
+      });
+  };
 
   loginBackendless = () => {
     const username = this.state.username;
@@ -194,16 +245,49 @@ class Login extends Component {
           self.props.onInit(response.data);
           self.setState({ loggedin: true });
           self.handleClose();
+          axios
+            .get(
+              serverURL +
+                "data/Messaging?where=name%20%3D%20'" +
+                jsonData.login +
+                "'"
+            )
+            .then(function(response) {
+              console.log("MessageID", response.data[0].objectId);
+              const messageID = response.data[0].objectId;
+              const messageJson = { messageID: messageID };
+              const objID = self.props.getUser().objectId;
+              axios
+                .put(serverURL + "users/" + objID, messageJson, {
+                  headers: { "user-token": self.props.getAuth() }
+                })
+                .then(function(response) {
+                  console.log("User", response);
+                })
+                .catch(function(error) {
+                  console.log("Error Updating User", error.message);
+                });
+            })
+            .catch(function(error) {
+              console.log("Error Finding Message", error.message);
+            });
         })
         .catch(function(error) {
           loginValidationErrors.password = "";
 
-          loginValidationErrors.username = " or password is invalid";
-
+          if (error.message === "Request failed with status code 401") {
+            loginValidationErrors.username = " or password is invalid";
+            loginValidationErrors.password = "";
+            loginValidationErrors.loginError = "";
+          }
+          if (error.message === "Request failed with status code 400") {
+            loginValidationErrors.loginError = " Email has not been verified";
+            loginValidationErrors.username = "";
+            loginValidationErrors.password = "";
+          }
           self.setState({
             loginErrors: loginValidationErrors
           });
-          console.log("Error", error.message);
         });
     }
   };
@@ -234,11 +318,14 @@ class Login extends Component {
         fieldValidationErrors.email = emailValid ? "" : " is invalid";
         break;
       case "registerPassword":
-        if (value.length >= 6 && value.length < 12) {
+        if ((value.length >= 6 && value.length < 12) || value.length === 4) {
           const re = new RegExp(
             "^(?=.*d)(?=.*[a-z])(?=.*[0-9])(?=.*[A-Z])(?=.[!@#$%^&]).{6,12}$"
           );
           passwordValid = re.test(value);
+          //TODO: Remove This
+          if (value === "test") passwordValid = true;
+          //---------------------------------------------------------------------------------//
           fieldValidationErrors.password = passwordValid
             ? ""
             : " Does not contain Capitals or special charictars, if you use a passphrase (12+ chars) there are no specifications";
@@ -251,8 +338,9 @@ class Login extends Component {
         }
         break;
       case "registerName":
-        nameValid = true;
-        fieldValidationErrors.name = "";
+        const re = new RegExp("[^A-Za-z0-9]+");
+        nameValid = re.test(value);
+        fieldValidationErrors.name = nameValid ? "no special characters" : "";
         break;
       default:
         break;

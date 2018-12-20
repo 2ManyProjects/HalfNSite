@@ -29,6 +29,9 @@ class App extends Component {
   getAuthToken = () => {
     return this.state.userData["user-token"];
   };
+  getUserData = () => {
+    return this.state.userData;
+  };
 
   render() {
     console.log("App - Rendered");
@@ -37,7 +40,11 @@ class App extends Component {
     const { classes } = this.props;
     return (
       <React.Fragment>
-        <Login onInit={this.initUserdata} getAuth={this.getAuthToken} />
+        <Login
+          onInit={this.initUserdata}
+          getAuth={this.getAuthToken}
+          getUser={this.getUserData}
+        />
         <HomePage />
       </React.Fragment>
     );
