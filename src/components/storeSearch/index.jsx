@@ -6,7 +6,7 @@ import "react-table/react-table.css";
 
 import API_K from "./../../keys";
 const APPLICATION_ID = "C499EC1A-F6D2-77C2-FFCF-14A634B64900";
-const API_KEY = API_K;
+const API_KEY = API_K[0];
 const serverURL =
   "https://api.backendless.com/" + APPLICATION_ID + "/" + API_KEY + "/";
 
@@ -78,9 +78,7 @@ class Search extends Component {
     let tempArr = [];
     for (let i = 0; i < this.state.results.length; i++) {
       if (this.state.results[i].UserList !== null) {
-        const newArr = this.state.results[i].UserList.split("#").filter(
-          users => users !== ""
-        );
+        const newArr = JSON.parse(this.state.results[i].UserList);
         tempArr = tempArr.concat(newArr);
       }
     }

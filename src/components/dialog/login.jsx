@@ -15,6 +15,7 @@ import SearchIcon from "@material-ui/icons/Search";
 import AccountCircle from "@material-ui/icons/AccountCircle";
 import MailIcon from "@material-ui/icons/Mail";
 import NotificationsIcon from "@material-ui/icons/Notifications";
+import Home from "@material-ui/icons/Home";
 import MoreIcon from "@material-ui/icons/MoreVert";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
@@ -23,6 +24,7 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
+import Backendless from "backendless";
 
 import axios from "axios";
 import { FormErrors } from "./FormErrors";
@@ -30,9 +32,11 @@ import "./style.scss";
 import API_K from "./../../keys";
 
 const APPLICATION_ID = "C499EC1A-F6D2-77C2-FFCF-14A634B64900";
-const API_KEY = API_K;
+const API_KEY = API_K[0];
+const JS_KEY = API_K[1];
 const serverURL =
   "https://api.backendless.com/" + APPLICATION_ID + "/" + API_KEY + "/";
+Backendless.initApp(APPLICATION_ID, JS_KEY);
 
 const styles = theme => ({
   root: {
@@ -108,8 +112,8 @@ class Login extends Component {
   state = {
     openLogin: false,
     openRegister: false,
-    username: "",
-    password: "",
+    username: "test",
+    password: "test",
     formErrors: {
       registerEmail: "",
       registerPassword: "",
@@ -212,6 +216,111 @@ class Login extends Component {
       });
   };
 
+  setupFiles = () => {
+    const self = this;
+
+    const emptyData = new Blob([JSON.stringify([])], {
+      type: "application/json"
+    });
+    let profileDatalink = "";
+    let sellingDatalink = "";
+    let sellingHistorylink = "";
+    let buyingDatalink = "";
+    let buyingHistorylink = "";
+    let buyingemailslink = "";
+    let sellingemailslink = "";
+    const path = "profileData/" + self.props.getUser().objectId;
+    if (this.props.getUser().profile.length < 1) {
+      Backendless.Files.saveFile(path, "profileData.txt", emptyData, true)
+        .then(function(response) {
+          profileDatalink = response;
+          Backendless.Files.saveFile(path, "sellingData.txt", emptyData, true)
+            .then(function(response) {
+              sellingDatalink = response;
+              Backendless.Files.saveFile(
+                path,
+                "sellingHistory.txt",
+                emptyData,
+                true
+              )
+                .then(function(response) {
+                  sellingHistorylink = response;
+                  Backendless.Files.saveFile(
+                    path,
+                    "buyingData.txt",
+                    emptyData,
+                    true
+                  )
+                    .then(function(response) {
+                      buyingDatalink = response;
+                      Backendless.Files.saveFile(
+                        path,
+                        "buyingHistory.txt",
+                        emptyData,
+                        true
+                      )
+                        .then(function(response) {
+                          buyingHistorylink = response;
+                          Backendless.Files.saveFile(
+                            path,
+                            "buyingemails.txt",
+                            emptyData,
+                            true
+                          )
+                            .then(function(response) {
+                              buyingemailslink = response;
+                              Backendless.Files.saveFile(
+                                path,
+                                "sellingemails.txt",
+                                emptyData,
+                                true
+                              )
+                                .then(function(response) {
+                                  sellingemailslink = response;
+                                  self.props.getUser().profile =
+                                    profileDatalink.fileURL;
+                                  Backendless.UserService.update(
+                                    self.props.getUser()
+                                  )
+                                    .then(function(response) {
+                                      const serverJson = {
+                                        objectId: self.props.getUser()
+                                          .messageID,
+                                        buyingEmails: buyingemailslink.fileURL,
+                                        buyingDataGson: buyingDatalink.fileURL,
+                                        buyingDataGsonHistory:
+                                          buyingHistorylink.fileURL,
+                                        sellingDataGson:
+                                          sellingDatalink.fileURL,
+                                        sellingDataGsonHistory:
+                                          sellingHistorylink.fileURL,
+                                        sellingEmails: sellingemailslink.fileURL
+                                      };
+                                      Backendless.Data.of("Messaging")
+                                        .save(serverJson)
+                                        .then(function(response) {})
+                                        .catch();
+                                    })
+                                    .catch();
+                                })
+                                .catch();
+                            })
+                            .catch();
+                        })
+                        .catch();
+                    })
+                    .catch();
+                })
+                .catch();
+            })
+            .catch();
+        })
+        .catch(function(error) {
+          console.log("ERROR", error);
+        });
+    }
+  };
+
   loginBackendless = () => {
     const username = this.state.username;
     const password = this.state.password;
@@ -238,11 +347,11 @@ class Login extends Component {
 
     if (filled) {
       const jsonData = { login: username, password: password };
-      axios
-        .post(serverURL + "users/login", jsonData)
+
+      Backendless.UserService.login(jsonData.login, jsonData.password)
         .then(function(response) {
           console.log("Login", response);
-          self.props.onInit(response.data);
+          self.props.onInit(response);
           self.setState({ loggedin: true });
           self.handleClose();
           axios
@@ -253,7 +362,6 @@ class Login extends Component {
                 "'"
             )
             .then(function(response) {
-              console.log("MessageID", response.data[0].objectId);
               const messageID = response.data[0].objectId;
               const messageJson = { messageID: messageID };
               const objID = self.props.getUser().objectId;
@@ -263,6 +371,12 @@ class Login extends Component {
                 })
                 .then(function(response) {
                   console.log("User", response);
+                  self.setupFiles();
+                  axios
+                    .get(self.props.getUser().profile)
+                    .then(function(response) {
+                      self.props.onStoreInit(response.data);
+                    });
                 })
                 .catch(function(error) {
                   console.log("Error Updating User", error.message);
@@ -385,6 +499,10 @@ class Login extends Component {
   handleMobileMenuClose = () => {
     this.setState({ mobileMoreAnchorEl: null });
   };
+  handleMenuOptions = x => {
+    this.props.updatePage(x);
+    this.handleMenuClose();
+  };
 
   render() {
     const { anchorEl, mobileMoreAnchorEl } = this.state;
@@ -400,9 +518,15 @@ class Login extends Component {
         open={isMenuOpen}
         onClose={this.handleMenuClose}
       >
-        <MenuItem onClick={this.handleMenuClose}>Buyer Profile</MenuItem>
-        <MenuItem onClick={this.handleMenuClose}>Seller Profile</MenuItem>
-        <MenuItem onClick={this.handleMenuClose}>My account</MenuItem>
+        <MenuItem onClick={() => this.handleMenuOptions(2)}>
+          Buyer Profile
+        </MenuItem>
+        <MenuItem onClick={() => this.handleMenuOptions(1)}>
+          Seller Profile
+        </MenuItem>
+        <MenuItem onClick={() => this.handleMenuOptions(3)}>
+          My account
+        </MenuItem>
       </Menu>
     );
 
@@ -422,14 +546,12 @@ class Login extends Component {
           </IconButton>
           <p>Messages</p>
         </MenuItem>
-        {/* <MenuItem>
+        <MenuItem>
           <IconButton color="inherit">
-            <Badge badgeContent={11} color="secondary">
-              <NotificationsIcon />
-            </Badge>
+            <Home onClick={() => this.props.updatePage(0)} />
           </IconButton>
           <p>Notifications</p>
-        </MenuItem> */}
+        </MenuItem>
         <MenuItem onClick={this.handleProfileMenuOpen}>
           <IconButton color="inherit">
             <AccountCircle />
@@ -516,6 +638,7 @@ class Login extends Component {
                     autoFocus
                     margin="dense"
                     id="username"
+                    value="test"
                     label="Username"
                     type="username"
                     onChange={this.loginChange}
@@ -526,6 +649,7 @@ class Login extends Component {
                     autoFocus
                     margin="dense"
                     id="password"
+                    value="test"
                     label="Password"
                     type="password"
                     onChange={this.loginChange}
@@ -630,7 +754,10 @@ class Login extends Component {
 
               <div className={classes.grow} />
               <div className={classes.sectionDesktop}>
-                <IconButton color="inherit">
+                <IconButton hidden={!this.state.loggedin} color="inherit">
+                  <Home onClick={() => this.props.updatePage(0)} />
+                </IconButton>
+                <IconButton hidden={!this.state.loggedin} color="inherit">
                   <Badge badgeContent={-10} color="secondary">
                     <MailIcon />
                   </Badge>
@@ -641,6 +768,7 @@ class Login extends Component {
                   </Badge>
                 </IconButton> */}
                 <IconButton
+                  hidden={!this.state.loggedin}
                   aria-owns={isMenuOpen ? "material-appbar" : undefined}
                   aria-haspopup="true"
                   onClick={this.handleProfileMenuOpen}
@@ -651,6 +779,7 @@ class Login extends Component {
               </div>
               <div className={classes.sectionMobile}>
                 <IconButton
+                  hidden={!this.state.loggedin}
                   aria-haspopup="true"
                   onClick={this.handleMobileMenuOpen}
                   color="inherit"
