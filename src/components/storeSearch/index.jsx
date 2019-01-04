@@ -89,31 +89,37 @@ class Search extends Component {
   };
 
   fillUserData = () => {
-    let tempArr = [];
-    for (let i = 0; i < this.state.userIDs.length; i++) {
-      axios
-        .get(serverURL + "data/Users/" + this.state.userIDs[i])
-        .then(result => {
-          axios.get(result.data.profile).then(profileData => {
-            const tempData = result.data;
-            for (let x = 0; x < profileData.data.length; x++) {
-              // console.log(this.state.results[0].Name, profileData.data[x]);
-              if (
-                profileData.data[x].name.includes(this.state.results[0].Name)
-              ) {
-                tempData["storeData"] = profileData.data[x];
-                break;
+    if (this.state.results[0] !== undefined) {
+      let tempArr = [];
+      for (let i = 0; i < this.state.userIDs.length; i++) {
+        axios
+          .get(serverURL + "data/Users/" + this.state.userIDs[i])
+          .then(result => {
+            axios.get(result.data.profile).then(profileData => {
+              const tempData = result.data;
+              for (let x = 0; x < profileData.data.length; x++) {
+                // console.log(
+                //   "Store",
+                //   this.state.results[0],
+                //   profileData.data[x]
+                // );
+                if (
+                  profileData.data[x].name.includes(this.state.results[0].Name)
+                ) {
+                  tempData["storeData"] = profileData.data[x];
+                  break;
+                }
               }
-            }
-            tempArr.push(tempData);
-            this.setState({
-              userData: tempArr
+              tempArr.push(tempData);
+              this.setState({
+                userData: tempArr
+              });
+              if (i === this.state.userIDs.length - 1) {
+                this.generateTableData();
+              }
             });
-            if (i === this.state.userIDs.length - 1) {
-              this.generateTableData();
-            }
           });
-        });
+      }
     }
   };
 

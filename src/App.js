@@ -6,14 +6,14 @@ import NavBar from "./components/dialog/login";
 import SellerProfile from "./components/profile/sellerProfile";
 import { withStyles } from "@material-ui/core/styles";
 import Backendless from "backendless";
-import Button from "@material-ui/core/Button";
+// import Button from "@material-ui/core/Button";
 import API_K from "./keys";
 
 const APPLICATION_ID = "C499EC1A-F6D2-77C2-FFCF-14A634B64900";
-const API_KEY = API_K[0];
+// const API_KEY = API_K[0];
 const JS_KEY = API_K[1];
-const serverURL =
-  "https://api.backendless.com/" + APPLICATION_ID + "/" + API_KEY + "/";
+// const serverURL =
+//   "https://api.backendless.com/" + APPLICATION_ID + "/" + API_KEY + "/";
 Backendless.initApp(APPLICATION_ID, JS_KEY);
 const styles = theme => ({
   button: {
@@ -203,8 +203,6 @@ class App extends Component {
   };
 
   render() {
-    /** Call the plugin */
-    const { classes } = this.props;
     return (
       <React.Fragment>
         <NavBar

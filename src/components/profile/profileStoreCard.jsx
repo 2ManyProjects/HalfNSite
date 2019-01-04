@@ -3,7 +3,7 @@ import PropTypes from "prop-types";
 import { withStyles } from "@material-ui/core/styles";
 import Card from "@material-ui/core/Card";
 import ReactTable from "react-table";
-import CardActions from "@material-ui/core/CardActions";
+// import CardActions from "@material-ui/core/CardActions";
 import CardContent from "@material-ui/core/CardContent";
 import Button from "@material-ui/core/Button";
 import Typography from "@material-ui/core/Typography";
@@ -442,14 +442,13 @@ class SimpleCard extends Component {
         return "TriYearly";
       default:
         return "Monthly";
-        break;
     }
   };
 
   stringDivider = (str, width, spaceReplacer) => {
     if (str.length > width) {
       var p = width;
-      for (; p > 0 && str[p] != " "; p--) {}
+      for (; p > 0 && str[p] !== " "; p--) {}
       if (p > 0) {
         var left = str.substring(0, p);
         var right = str.substring(p + 1);

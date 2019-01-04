@@ -8,8 +8,12 @@ const mapStyles = {
     height: "100%"
   }
 };
-
 export class CurrentLocation extends React.Component {
+  state = {
+    currentLocation: { lat: 0, lng: 0 },
+    places: [],
+    updated: false
+  };
   componentDidUpdate(prevProps, prevState) {
     if (prevProps.google !== this.props.google) {
       this.loadMap();
@@ -20,6 +24,7 @@ export class CurrentLocation extends React.Component {
   }
 
   recenterMap() {
+    this.setState({ updated: false });
     const map = this.map;
     const current = this.state.currentLocation;
 
@@ -70,11 +75,47 @@ export class CurrentLocation extends React.Component {
           zoom: zoom
         }
       );
-
-      // maps.Map() is constructor that instantiates the map
       this.map = new maps.Map(node, mapConfig);
     }
   }
+  componentWillReceiveProps(props) {
+    const { address } = this.props;
+    if (props.address !== address) {
+      this.setState({ updated: false });
+    }
+    this.onReady();
+  }
+
+  onReady = () => {
+    if (this.props.address.length > 2 && this.state.updated === false) {
+      this.setState({ updated: true });
+      const { google } = this.props;
+      const service = new google.maps.places.PlacesService(this.map);
+
+      // Specify location, radius and place types for your Places API search.
+      const request = {
+        location: this.state.currentLocation,
+        name: this.props.address,
+        radius: "5000",
+        fields: [
+          "place_id",
+          "formatted_address",
+          "name",
+          "rating",
+          "opening_hours"
+        ]
+      };
+
+      service.nearbySearch(request, (results, status) => {
+        console.log("results", results);
+        console.log("status", status);
+        if (status === google.maps.places.PlacesServiceStatus.OK)
+          this.setState({ places: results }, () => {
+            this.props.Found(this.state.places);
+          });
+      });
+    }
+  };
 
   renderChildren() {
     const { children } = this.props;

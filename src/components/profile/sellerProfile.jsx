@@ -9,17 +9,24 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import { FormErrors } from "./../dialog/FormErrors";
-import { Map, InfoWindow, Marker, GoogleApiWrapper } from "google-maps-react";
+import { InfoWindow, Marker, GoogleApiWrapper } from "google-maps-react";
 import CurrentLocation from "./Map";
-
-const mapStyles = {
-  width: "100%",
-  height: "100%"
-};
+import InfoWindowEx from "./InfoWind";
 
 export class SellerProfile extends Component {
   constructor(props) {
     super(props);
+    this.onMarkerMounted = element => {
+      if (!element) {
+        this.setState(prevState => ({
+          markerObjects: []
+        }));
+      } else {
+        this.setState(prevState => ({
+          markerObjects: [...prevState.markerObjects, element.marker]
+        }));
+      }
+    };
   }
 
   state = {
@@ -32,10 +39,13 @@ export class SellerProfile extends Component {
     isNew: false,
     dealProgression: 0,
     storeDeals: [{}],
+    query: "",
     imageResource: 0,
+    places: [],
+    markerObjects: [],
     showingInfoWindow: false, //Hides or the shows the infoWindow
     activeMarker: {}, //Shows the active marker upon click
-    selectedPlace: {} //Shows the infoWindow to the selected place upon a marker
+    selectedPlace: { name: "", data: { vicinity: "", place_id: "" } } //Shows the infoWindow to the selected place upon a marker
   };
 
   resetStateValues = () => {
@@ -49,11 +59,21 @@ export class SellerProfile extends Component {
       isNew: false,
       dealProgression: 0,
       storeDeals: [{}],
+      query: "",
       imageResource: 0,
+      places: [],
+      markerObjects: [],
+      showingInfoWindow: false, //Hides or the shows the infoWindow
+      activeMarker: {}, //Shows the active marker upon click
+      selectedPlace: { name: "", data: { vicinity: "", place_id: "" } }, //Shows the infoWindow to the selected place upon a marker
       Errors: {
         address: ""
       }
     });
+  };
+
+  fillPlaces = results => {
+    this.setState({ places: results });
   };
 
   onMarkerClick = (props, marker, e) =>
@@ -73,7 +93,19 @@ export class SellerProfile extends Component {
   };
 
   changeAddress = e => {
-    this.setState({ address: e.target.value });
+    this.setState({
+      address: e.target.value,
+      places: [],
+      markerObjects: [],
+      showingInfoWindow: false, //Hides or the shows the infoWindow
+      activeMarker: {}
+    });
+  };
+
+  _handleKeyPress = e => {
+    if (e.key === "Enter") {
+      this.setState({ address: e.target.value, query: e.target.value });
+    }
   };
 
   handleOpen = () => {
@@ -81,7 +113,24 @@ export class SellerProfile extends Component {
   };
 
   handleClose = () => {
-    this.setState({ open: false });
+    this.setState({ open: false }, () => {
+      console.log(this.state.open);
+    });
+  };
+  getDisplayInfo = () => {
+    if (this.state.selectedPlace !== "undefined") {
+      return (
+        <center>
+          <Typography>Name: {this.state.selectedPlace.name}</Typography>
+          <Typography>
+            Address: {this.state.selectedPlace.data.vicinity}
+          </Typography>
+          <Typography>
+            Place ID: {this.state.selectedPlace.data.place_id}
+          </Typography>
+        </center>
+      );
+    }
   };
 
   render() {
@@ -93,6 +142,7 @@ export class SellerProfile extends Component {
       onDealCreate,
       onCreate
     } = this.props;
+    const data = this.state.places;
     return (
       <span>
         <Button onClick={this.handleOpen} variant="contained" color="primary">
@@ -131,34 +181,56 @@ export class SellerProfile extends Component {
               label="Store Name"
               type="text"
               onChange={this.changeAddress}
+              onKeyPress={this._handleKeyPress}
               required={true}
               fullWidth
             />
             <CurrentLocation
               centerAroundCurrentLocation
               google={this.props.google}
+              address={this.state.query}
+              Found={this.fillPlaces}
             >
-              <Marker onClick={this.onMarkerClick} name={"current location"} />
-              <InfoWindow
+              {data.map(item => (
+                <Marker
+                  onClick={this.onMarkerClick}
+                  ref={this.onMarkerMounted}
+                  data={item}
+                  key={item.place_id}
+                  title={item.name}
+                  name={item.name}
+                  position={{
+                    lat: item.geometry.location.lat(),
+                    lng: item.geometry.location.lng()
+                  }}
+                />
+              ))}
+              <InfoWindowEx
                 marker={this.state.activeMarker}
                 visible={this.state.showingInfoWindow}
                 onClose={this.onClose}
               >
                 <div>
-                  <h4>{this.state.selectedPlace.name}</h4>
+                  {this.getDisplayInfo()}
+
+                  <Button
+                    variant="contained"
+                    color="primary"
+                    //onClick={this.handleClick}
+                  >
+                    Register
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      this.handleClose();
+                    }}
+                    color="secondary"
+                  >
+                    Cancel
+                  </Button>
                 </div>
-              </InfoWindow>
+              </InfoWindowEx>
             </CurrentLocation>
-            <Button
-              variant="contained"
-              color="primary"
-              //onClick={this.handleClick}
-            >
-              Register
-            </Button>
-            <Button onClick={this.handleClose} color="secondary">
-              Cancel
-            </Button>
           </DialogContent>
           <DialogActions />
         </Dialog>
