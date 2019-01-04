@@ -78,7 +78,12 @@ class Search extends Component {
     let tempArr = [];
     for (let i = 0; i < this.state.results.length; i++) {
       if (this.state.results[i].UserList !== null) {
-        const newArr = JSON.parse(this.state.results[i].UserList);
+        let newArr = JSON.parse(this.state.results[i].UserList);
+        console.log("VALUE", newArr, " logged? ", this.props.getLogged);
+        if (this.props.getLogged) {
+          console.log(" ID ", this.props.getUser.objectId);
+          newArr = newArr.filter(id => id !== this.props.getUser.objectId);
+        }
         tempArr = tempArr.concat(newArr);
       }
     }

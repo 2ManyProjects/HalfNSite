@@ -6,7 +6,6 @@ import NavBar from "./components/dialog/login";
 import SellerProfile from "./components/profile/sellerProfile";
 import { withStyles } from "@material-ui/core/styles";
 import Backendless from "backendless";
-import Button from "@material-ui/core/Button";
 import Snackbar from "@material-ui/core/Snackbar";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
@@ -34,6 +33,7 @@ const styles = theme => ({
 
 class App extends Component {
   state = {
+    loggedin: false,
     userData: {},
     snackbar: false,
     show: {
@@ -102,7 +102,7 @@ class App extends Component {
   };
 
   initUserdata = jsonData => {
-    this.setState({ userData: jsonData });
+    this.setState({ loggedin: true, userData: jsonData });
   };
   storeInit = jsonData => {
     this.setState({ storeData: jsonData });
@@ -306,7 +306,10 @@ class App extends Component {
           updatePage={this.changePage}
         />
         <div hidden={!this.state.show.homePage}>
-          <HomePage />
+          <HomePage
+            getUser={this.state.userData}
+            getLogged={this.state.loggedin}
+          />
         </div>
         <div hidden={!this.state.show.sellerPage}>
           <SellerProfile

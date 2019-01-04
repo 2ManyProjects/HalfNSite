@@ -14,7 +14,10 @@ class HomePage extends Component {
         <TitleSection />
         <StoreCardSection />
         <center>
-          <StoreSearch />
+          <StoreSearch
+            getUser={this.props.getUser}
+            getLogged={this.props.getLogged}
+          />
         </center>
       </React.Fragment>
     );

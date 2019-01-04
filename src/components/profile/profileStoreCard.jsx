@@ -24,10 +24,16 @@ import InputLabel from "@material-ui/core/InputLabel";
 import MenuItem from "@material-ui/core/MenuItem";
 import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
+import Snackbar from "@material-ui/core/Snackbar";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
 
 const styles = theme => ({
   card: {
     minWidth: 275
+  },
+  close: {
+    padding: theme.spacing.unit / 2
   },
   bullet: {
     display: "inline-block",
@@ -61,6 +67,7 @@ const styles = theme => ({
 
 class SimpleCard extends Component {
   state = {
+    snackbar: false,
     open: false,
     disabled: true,
     term: "",
@@ -103,6 +110,7 @@ class SimpleCard extends Component {
 
   resetStateValues = () => {
     this.setState({
+      snackbar: false,
       open: this.state.open,
       disabled: true,
       term: "",
@@ -190,6 +198,10 @@ class SimpleCard extends Component {
     this.setState({ openPeriod: false });
   };
 
+  handleCloseS = () => {
+    this.setState({ snackbar: false });
+  };
+
   getDealType = bool => {
     if (bool === false) return "Normal";
     return "Factory +  Discount";
@@ -200,10 +212,11 @@ class SimpleCard extends Component {
   };
 
   handleEdit = (store, deal) => {
-    let newDeal = deal;
-    const data = parseInt(deal.totalAmnt) + 1;
-    newDeal.totalAmnt = data.toString();
-    this.props.onDealEdit(store, deal, newDeal);
+    this.setState({ snackbar: true });
+    // let newDeal = deal;
+    // const data = parseInt(deal.totalAmnt) + 1;
+    // newDeal.totalAmnt = data.toString();
+    // this.props.onDealEdit(store, deal, newDeal);
   };
 
   valChange = e => {
@@ -556,6 +569,37 @@ class SimpleCard extends Component {
               showPagination={false}
             />
           </center>
+
+          <div>
+            <Snackbar
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "left"
+              }}
+              open={this.state.snackbar}
+              autoHideDuration={6000}
+              onClose={this.handleCloseS}
+              ContentProps={{
+                "aria-describedby": "message-id"
+              }}
+              message={
+                <span id="message-id">
+                  Edit currently not working, please Create a new Deal
+                </span>
+              }
+              action={[
+                <IconButton
+                  key="close"
+                  aria-label="Close"
+                  color="inherit"
+                  className={classes.close}
+                  onClick={this.handleCloseS}
+                >
+                  <CloseIcon />
+                </IconButton>
+              ]}
+            />
+          </div>
 
           <Button onClick={this.handleOpen} variant="contained" color="primary">
             Add Deal

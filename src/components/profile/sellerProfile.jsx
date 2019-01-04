@@ -146,7 +146,12 @@ export class SellerProfile extends Component {
     const { storeData } = this.props;
     if (props.storeData !== storeData || fill === 1) {
       fill = fill + 1;
-      this.setState({ storeData: storeData });
+      const sortedArray = storeData.sort(function(a, b) {
+        if (a.name < b.name) return -1;
+        else if (a.name > b.name) return 1;
+        return 0;
+      });
+      this.setState({ storeData: sortedArray });
     }
   }
 
