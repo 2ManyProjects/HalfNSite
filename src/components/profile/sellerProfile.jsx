@@ -9,10 +9,10 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import { FormErrors } from "./../dialog/FormErrors";
-import { InfoWindow, Marker, GoogleApiWrapper } from "google-maps-react";
+import { Marker, GoogleApiWrapper } from "google-maps-react";
 import CurrentLocation from "./Map";
 import InfoWindowEx from "./InfoWind";
-
+let fill = 0;
 export class SellerProfile extends Component {
   constructor(props) {
     super(props);
@@ -30,6 +30,7 @@ export class SellerProfile extends Component {
   }
 
   state = {
+    storeData: [],
     open: false,
     ID: "",
     address: "",
@@ -108,14 +109,22 @@ export class SellerProfile extends Component {
     }
   };
 
+  handleRegister = () => {
+    const data = this.state.selectedPlace.data;
+    const storeData = {
+      StoreID: data.place_id,
+      Name: data.name
+    };
+    this.props.onCreate(storeData, data);
+    this.handleClose();
+  };
+
   handleOpen = () => {
     this.resetStateValues();
   };
 
   handleClose = () => {
-    this.setState({ open: false }, () => {
-      console.log(this.state.open);
-    });
+    this.setState({ open: false });
   };
   getDisplayInfo = () => {
     if (this.state.selectedPlace !== "undefined") {
@@ -133,14 +142,21 @@ export class SellerProfile extends Component {
     }
   };
 
+  componentWillReceiveProps(props) {
+    const { storeData } = this.props;
+    if (props.storeData !== storeData || fill === 1) {
+      fill = fill + 1;
+      this.setState({ storeData: storeData });
+    }
+  }
+
   render() {
     const {
       storeData,
       onDealDelete,
       onDealEdit,
       onDelete,
-      onDealCreate,
-      onCreate
+      onDealCreate
     } = this.props;
     const data = this.state.places;
     return (
@@ -148,7 +164,7 @@ export class SellerProfile extends Component {
         <Button onClick={this.handleOpen} variant="contained" color="primary">
           Add Store
         </Button>
-        {storeData.map(storecard => (
+        {this.state.storeData.map(storecard => (
           <Cards
             key={storecard.ID}
             onDelete={onDelete}
@@ -208,7 +224,6 @@ export class SellerProfile extends Component {
               <InfoWindowEx
                 marker={this.state.activeMarker}
                 visible={this.state.showingInfoWindow}
-                onClose={this.onClose}
               >
                 <div>
                   {this.getDisplayInfo()}
@@ -216,7 +231,7 @@ export class SellerProfile extends Component {
                   <Button
                     variant="contained"
                     color="primary"
-                    //onClick={this.handleClick}
+                    onClick={this.handleRegister}
                   >
                     Register
                   </Button>

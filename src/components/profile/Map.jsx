@@ -107,8 +107,8 @@ export class CurrentLocation extends React.Component {
       };
 
       service.nearbySearch(request, (results, status) => {
-        console.log("results", results);
-        console.log("status", status);
+        // console.log("results", results);
+        // console.log("status", status);
         if (status === google.maps.places.PlacesServiceStatus.OK)
           this.setState({ places: results }, () => {
             this.props.Found(this.state.places);

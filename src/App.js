@@ -6,6 +6,11 @@ import NavBar from "./components/dialog/login";
 import SellerProfile from "./components/profile/sellerProfile";
 import { withStyles } from "@material-ui/core/styles";
 import Backendless from "backendless";
+import Button from "@material-ui/core/Button";
+import Snackbar from "@material-ui/core/Snackbar";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
+
 // import Button from "@material-ui/core/Button";
 import API_K from "./keys";
 
@@ -19,6 +24,9 @@ const styles = theme => ({
   button: {
     margin: theme.spacing.unit
   },
+  close: {
+    padding: theme.spacing.unit / 2
+  },
   input: {
     display: "none"
   }
@@ -27,6 +35,7 @@ const styles = theme => ({
 class App extends Component {
   state = {
     userData: {},
+    snackbar: false,
     show: {
       homePage: true,
       sellerPage: false,
@@ -79,6 +88,17 @@ class App extends Component {
     this.setState({ show: data }, () => {
       // console.log("STATE", this.state.show);
     });
+  };
+  handleClick = () => {
+    this.setState({ snackbar: true });
+  };
+
+  handleClose = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+
+    this.setState({ snackbar: false });
   };
 
   initUserdata = jsonData => {
@@ -136,6 +156,78 @@ class App extends Component {
             .catch(function(error) {});
         })
         .catch(function(fault) {
+          // an error has occurred, the error code can be retrieved with fault.statusCode
+        });
+    });
+  };
+
+  handleStoreCreate = (store, rawData) => {
+    const raw = rawData;
+    let storeData = this.state.storeData;
+    const newStore = {
+      ID: raw.place_id,
+      address: raw.vicinity,
+      buyer: "",
+      dealProgression: 0,
+      imageResource: 0,
+      isNew: false,
+      name: raw.name,
+      seller: this.getUserData().name,
+      storeDeals: [{}]
+    };
+    storeData.push(newStore);
+    console.log("STOREDATA", storeData);
+    this.setState({ storeData: storeData }, () => {
+      const whereClause = "StoreID = " + "'" + store.ID + "'";
+      const queryBuilder = Backendless.DataQueryBuilder.create().setWhereClause(
+        whereClause
+      );
+      const self = this;
+      Backendless.Data.of("Stores")
+        .find(queryBuilder)
+        .then(function(foundStores) {
+          let data = [];
+          if (foundStores.length === 0) {
+            data = [self.getUserData().objectId];
+            let tempStore = store;
+            tempStore.UserList = JSON.stringify(data);
+            Backendless.Data.of("Stores")
+              .save(tempStore)
+              .then(function(savedObject) {
+                console.log("Store instance has been created", savedObject);
+              })
+              .catch(function(error) {
+                console.log("an error has occurred " + error.message);
+              });
+          } else {
+            data = JSON.parse(foundStores[0].UserList);
+            if (!data.includes(self.getUserData().objectId)) {
+              data.push(self.getUserData().objectId);
+              let tempStore = foundStores[0];
+              tempStore.UserList = JSON.stringify(data);
+              Backendless.Data.of("Stores")
+                .save(tempStore)
+                .then(function(savedObject) {
+                  console.log("Store instance has been updated", savedObject);
+                })
+                .catch(function(error) {
+                  console.log("an error has occurred " + error.message);
+                });
+            } else {
+              self.setState({ snackbar: true });
+            }
+          }
+          const path = "profileData/" + self.getUserData().objectId + "/";
+          const stores = new Blob([JSON.stringify(self.state.storeData)], {
+            type: "application/json"
+          });
+          console.log("ADD", JSON.stringify(self.state.storeData));
+          Backendless.Files.saveFile(path, "profileData.txt", stores, true)
+            .then(function(fileURL) {})
+            .catch(function(error) {});
+        })
+        .catch(function(fault) {
+          console.log("Store Add Error", fault);
           // an error has occurred, the error code can be retrieved with fault.statusCode
         });
     });
@@ -203,6 +295,7 @@ class App extends Component {
   };
 
   render() {
+    const { classes } = this.props;
     return (
       <React.Fragment>
         <NavBar
@@ -217,12 +310,43 @@ class App extends Component {
         </div>
         <div hidden={!this.state.show.sellerPage}>
           <SellerProfile
+            getUser={this.getUserData}
             onDelete={this.handleStoreDelete}
             onDealDelete={this.handleDealDelete}
             onDealEdit={this.handleDealEdit}
             onDealCreate={this.handleDealAdd}
             onCreate={this.handleStoreCreate}
             storeData={this.state.storeData}
+          />
+        </div>
+        <div>
+          <Snackbar
+            anchorOrigin={{
+              vertical: "bottom",
+              horizontal: "left"
+            }}
+            open={this.state.snackbar}
+            autoHideDuration={6000}
+            onClose={this.handleClose}
+            ContentProps={{
+              "aria-describedby": "message-id"
+            }}
+            message={
+              <span id="message-id">
+                You are Already Registered to this store
+              </span>
+            }
+            action={[
+              <IconButton
+                key="close"
+                aria-label="Close"
+                color="inherit"
+                className={classes.close}
+                onClick={this.handleClose}
+              >
+                <CloseIcon />
+              </IconButton>
+            ]}
           />
         </div>
       </React.Fragment>
