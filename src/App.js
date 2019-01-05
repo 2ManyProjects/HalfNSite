@@ -9,6 +9,9 @@ import Backendless from "backendless";
 import Snackbar from "@material-ui/core/Snackbar";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
+import { Router, IndexRoute } from "react-router";
+import { HashRouter, Route, Link } from "react-router-dom";
+import MailBox from "./components/app";
 
 // import Button from "@material-ui/core/Button";
 import API_K from "./keys";
@@ -38,6 +41,7 @@ class App extends Component {
     snackbar: false,
     show: {
       homePage: true,
+      mailbox: false,
       sellerPage: false,
       buyerPage: false,
       accountPage: false
@@ -53,6 +57,7 @@ class App extends Component {
       case 0:
         data = {
           homePage: true,
+          mailbox: false,
           sellerPage: false,
           buyerPage: false,
           accountPage: false
@@ -61,6 +66,7 @@ class App extends Component {
       case 1:
         data = {
           homePage: false,
+          mailbox: false,
           sellerPage: true,
           buyerPage: false,
           accountPage: false
@@ -69,6 +75,7 @@ class App extends Component {
       case 2:
         data = {
           homePage: false,
+          mailbox: false,
           sellerPage: false,
           buyerPage: true,
           accountPage: false
@@ -77,9 +84,19 @@ class App extends Component {
       case 3:
         data = {
           homePage: false,
+          mailbox: false,
           sellerPage: false,
           buyerPage: false,
           accountPage: true
+        };
+        break;
+      case 4:
+        data = {
+          homePage: false,
+          mailbox: true,
+          sellerPage: false,
+          buyerPage: false,
+          accountPage: false
         };
         break;
       default:
@@ -305,6 +322,9 @@ class App extends Component {
           getUser={this.getUserData}
           updatePage={this.changePage}
         />
+        <div hidden={!this.state.show.mailbox}>
+          <MailBox />
+        </div>
         <div hidden={!this.state.show.homePage}>
           <HomePage
             getUser={this.state.userData}

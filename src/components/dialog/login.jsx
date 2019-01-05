@@ -538,23 +538,23 @@ class Login extends Component {
         open={isMobileMenuOpen}
         onClose={this.handleMobileMenuClose}
       >
-        <MenuItem>
+        <MenuItem onClick={() => this.props.updatePage(4)}>
           <IconButton color="inherit">
             <Badge badgeContent={4} color="secondary">
-              <MailIcon />
+              <MailIcon onClick={() => this.props.updatePage(4)} />
             </Badge>
           </IconButton>
           <p>Messages</p>
         </MenuItem>
-        <MenuItem>
+        <MenuItem onClick={() => this.props.updatePage(0)}>
           <IconButton color="inherit">
             <Home onClick={() => this.props.updatePage(0)} />
           </IconButton>
-          <p>Notifications</p>
+          <p>HomePage</p>
         </MenuItem>
         <MenuItem onClick={this.handleProfileMenuOpen}>
           <IconButton color="inherit">
-            <AccountCircle />
+            <AccountCircle onClick={this.handleProfileMenuOpen} />
           </IconButton>
           <p>Profile</p>
         </MenuItem>
@@ -759,7 +759,7 @@ class Login extends Component {
                 </IconButton>
                 <IconButton hidden={!this.state.loggedin} color="inherit">
                   <Badge badgeContent={-10} color="secondary">
-                    <MailIcon />
+                    <MailIcon onClick={() => this.props.updatePage(4)} />
                   </Badge>
                 </IconButton>
                 {/* <IconButton color="inherit">
