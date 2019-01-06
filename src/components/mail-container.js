@@ -1,21 +1,9 @@
 import React from "react";
-import MAILS from "../mails";
 import Mail from "./mail";
 import PropTypes from "prop-types";
 import Typography from "@material-ui/core/Typography";
 import axios from "axios";
-import API_K from "./../keys";
-import {
-  createMuiTheme,
-  MuiThemeProvider,
-  withStyles
-} from "@material-ui/core/styles";
-
-const APPLICATION_ID = "C499EC1A-F6D2-77C2-FFCF-14A634B64900";
-const API_KEY = API_K[0];
-const JS_KEY = API_K[1];
-const serverURL =
-  "https://api.backendless.com/" + APPLICATION_ID + "/" + API_KEY + "/";
+import { withStyles } from "@material-ui/core/styles";
 
 const styles = {
   root: {
@@ -24,94 +12,95 @@ const styles = {
   }
 };
 
-function typographyV1Theme(theme) {
-  return createMuiTheme({
-    ...theme,
-    typography: {
-      useNextVariants: false
+class MailContainer extends React.Component {
+  state = { content: "", drawn: false };
+  drawEmail = () => {
+    let mails = "";
+    let content = "";
+    const messageData = this.props.getMessage;
+    const self = this;
+
+    let email = "";
+    if (this.props.folder === "Seller") {
+      email = messageData.sellingEmails;
+    } else if (this.props.folder === "Buyer") {
+      email = messageData.buyingEmails;
     }
-  });
-}
-function MailContainer(props) {
-  const { classes } = props;
-  const mails = MAILS[props.folder];
-  let content = "";
-  const messageData = props.getMessage;
-  //   console.log("UserData ", messageData);
-  let email = "";
-  if (props.folder === "Seller") {
-    email = messageData.sellingEmails;
-  } else if (props.folder === "Buyer") {
-    email = messageData.buyingEmails;
-  }
-  axios
-    .get(email)
-    .then(function(response) {
-      console.log("EMAILS " + props.folder, response);
-    })
-    .catch(function(error) {
-      //   console.log("File Link ", email);
-      //   console.log("Error Finding File", error.message);
-    });
+    console.log("Content", email);
 
-  if (mails !== undefined) {
-    content = Object.keys(mails).map((id, index) => {
-      let reply = "";
+    axios
+      .get(email)
+      .then(function(response) {
+        mails = response.data;
+        if (mails !== undefined) {
+          content = mails.map((mail, index) => {
+            console.log(mail);
+            let reply = "";
 
-      if (mails[id].reply !== undefined) {
-        reply = Object.keys(mails[id].reply).map((reply_id, reply_index) => {
-          let replyItem = mails[id].reply[reply_id];
-
-          return (
-            <div key={reply_index} className="content">
-              <Mail
-                key={reply_index}
-                id={replyItem.reply_id}
-                from={replyItem.from}
-                to={replyItem.to}
-                subject={replyItem.title}
-                content={replyItem.content}
-              />
-            </div>
-          );
-        });
-      }
-
-      let mailItem = mails[id];
-
-      return (
-        <center key={index} className="content">
-          <Mail
-            key={index}
-            id={mailItem.id}
-            from={mailItem.from}
-            to={mailItem.to}
-            subject={mailItem.title}
-            content={mailItem.content}
-            reply={
-              <div>
-                <br />
-                {reply}
-              </div>
+            if (mail.reply !== undefined) {
+              reply = mail.reply.map((re, reply_index) => {
+                return (
+                  <div key={reply_index} className="content">
+                    <Mail
+                      key={reply_index}
+                      id={re.reply_id}
+                      from={re.from}
+                      to={re.to}
+                      subject={re.title}
+                      content={re.content}
+                    />
+                  </div>
+                );
+              });
             }
-          />
-          <br />
-          <br />
-        </center>
-      );
-    });
-  }
 
-  return (
-    <center className="content">
-      <center className={classes.root}>
-        <Typography component="h3" variant="display4" gutterBottom>
-          {props.folder}
-        </Typography>
+            let mailItem = mail;
+
+            return (
+              <center key={index} className="content">
+                <Mail
+                  key={index}
+                  id={mailItem.id}
+                  from={mailItem.from}
+                  to={mailItem.to}
+                  subject={mailItem.title}
+                  content={mailItem.content}
+                  reply={
+                    <div>
+                      <br />
+                      {reply}
+                    </div>
+                  }
+                />
+                <br />
+                <br />
+              </center>
+            );
+          });
+
+          self.setState({ content: content, drawn: true });
+        }
+      })
+      .catch(function(error) {
+        // console.log("File Link ", email);
+        // console.log("Error Finding File", error.message);
+      });
+  };
+
+  render() {
+    const { classes } = this.props;
+    if (!this.state.drawn) this.drawEmail();
+    return (
+      <center className="content">
+        <center className={classes.root}>
+          <Typography component="h3" variant="display4" gutterBottom>
+            {this.props.folder}
+          </Typography>
+        </center>
+        {this.state.content}
       </center>
-      {content}
-    </center>
-  );
+    );
+  }
 }
 
 MailContainer.propTypes = {

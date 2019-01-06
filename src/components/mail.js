@@ -43,7 +43,7 @@ const styles = theme => ({
 });
 
 class Mail extends React.Component {
-  state = { expanded: false, expandable: false };
+  state = { expanded: false, expandable: false, reply: false };
 
   handleExpandClick = () => {
     this.setState(state => ({ expanded: !state.expanded }));
@@ -51,7 +51,11 @@ class Mail extends React.Component {
 
   isExpandable = () => {
     if (this.props.reply !== undefined) {
-      this.setState({ expandable: true });
+      let expand = false;
+      if (this.props.reply.props.children[1] !== "") {
+        expand = true;
+      }
+      this.setState({ expandable: expand, reply: true });
     } else {
       this.setState({ expandable: false });
     }
@@ -63,7 +67,6 @@ class Mail extends React.Component {
 
   render() {
     const { classes } = this.props;
-    console.log("Mail", this.props);
     return (
       <div>
         <Card className={classes.card}>
@@ -97,7 +100,7 @@ class Mail extends React.Component {
           </Collapse>
 
           <Button
-            hidden={!this.state.expandable}
+            hidden={!this.state.reply}
             className="m-2"
             variant="contained"
             color="secondary"
