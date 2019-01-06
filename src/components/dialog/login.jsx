@@ -230,7 +230,7 @@ class Login extends Component {
     let buyingemailslink = "";
     let sellingemailslink = "";
     const path = "profileData/" + self.props.getUser().objectId;
-    if (this.props.getUser().profile.length < 1) {
+    if (this.props.getUser().profile === null) {
       Backendless.Files.saveFile(path, "profileData.txt", emptyData, true)
         .then(function(response) {
           profileDatalink = response;
@@ -298,7 +298,9 @@ class Login extends Component {
                                       };
                                       Backendless.Data.of("Messaging")
                                         .save(serverJson)
-                                        .then(function(response) {})
+                                        .then(function(response) {
+                                          self.props.onMessageInit(response);
+                                        })
                                         .catch();
                                     })
                                     .catch();
@@ -370,8 +372,15 @@ class Login extends Component {
                   headers: { "user-token": self.props.getAuth() }
                 })
                 .then(function(response) {
-                  console.log("User", response);
                   self.setupFiles();
+                  if (self.props.getUser().profile !== null) {
+                    Backendless.Data.of("Messaging")
+                      .findById(messageID)
+                      .then(function(result) {
+                        self.props.onMessageInit(result);
+                      })
+                      .catch(function(error) {});
+                  }
                   axios
                     .get(self.props.getUser().profile)
                     .then(function(response) {

@@ -2,24 +2,25 @@ export default {
   Seller: {
     0: {
       id: 0,
-      from: "billg@microsoft.com",
-      to: "TeamWoz@Woz.org",
-      title: "Possible work opportunity",
-      content: "Dear Woz.  Fancy a job at Mister Softee?  Bill x",
+      from: "Admin",
+      to: "You",
+      title: "Order id:",
+      content: "1 cardigan from Best Buy 50% off",
+      completed: false,
       reply: [
         {
           id: 0,
-          from: "billg@microsoft.com",
-          to: "TeamWoz@Woz.org",
-          title: "Possible work opportunity",
-          content: "Dear Woz.  Fancy a job at Mister Softee?  Bill x"
+          from: "You",
+          to: "Admin",
+          title: "Order Confirmed",
+          content: "I can pick it up by 5pm today"
         },
         {
           id: 1,
-          from: "zuck@facebook.com",
-          to: "TeamWoz@Woz.org",
-          title: "Do you know PHP?",
-          content: "Dear Woz.  We are in need of a PHP expert.  Fast.  Zuck x"
+          from: "You",
+          to: "Admin",
+          title: "Item Purchased",
+          content: "maybe add photographic evidence?"
         }
       ]
     },
@@ -37,14 +38,16 @@ export default {
       from: "ChEaPFl1ghTZ@hotmail.com",
       to: "TeamWoz@Woz.org",
       title: "WaNt CHEEp FlitZ",
-      content: "Theyre CheEp"
+      content: "Theyre CheEp",
+      completed: false
     },
     1: {
       id: 1,
       from: "NiKEAIRJordanZ@hotmail.com",
       to: "TeamWoz@Woz.org",
       title: "JorDanz For SAle",
-      content: "Theyre REELY CheEp"
+      content: "Theyre REELY CheEp",
+      completed: false
     }
   }
 };

@@ -9,8 +9,6 @@ import Backendless from "backendless";
 import Snackbar from "@material-ui/core/Snackbar";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
-import { Router, IndexRoute } from "react-router";
-import { HashRouter, Route, Link } from "react-router-dom";
 import MailBox from "./components/app";
 
 // import Button from "@material-ui/core/Button";
@@ -38,6 +36,7 @@ class App extends Component {
   state = {
     loggedin: false,
     userData: {},
+    messageData: {},
     snackbar: false,
     show: {
       homePage: true,
@@ -118,8 +117,12 @@ class App extends Component {
     this.setState({ snackbar: false });
   };
 
-  initUserdata = jsonData => {
+  initUserData = jsonData => {
     this.setState({ loggedin: true, userData: jsonData });
+  };
+
+  initMessageData = jsonData => {
+    this.setState({ messageData: jsonData });
   };
   storeInit = jsonData => {
     this.setState({ storeData: jsonData });
@@ -131,6 +134,9 @@ class App extends Component {
   };
   getUserData = () => {
     return this.state.userData;
+  };
+  getMessageData = () => {
+    return this.state.messageData;
   };
   handleStoreDelete = cardID => {
     const storeData = this.state.storeData.filter(c => c.ID !== cardID);
@@ -316,14 +322,15 @@ class App extends Component {
     return (
       <React.Fragment>
         <NavBar
-          onInit={this.initUserdata}
+          onInit={this.initUserData}
+          onMessageInit={this.initMessageData}
           onStoreInit={this.storeInit}
           getAuth={this.getAuthToken}
           getUser={this.getUserData}
           updatePage={this.changePage}
         />
         <div hidden={!this.state.show.mailbox}>
-          <MailBox />
+          <MailBox getMessage={this.getMessageData} />
         </div>
         <div hidden={!this.state.show.homePage}>
           <HomePage

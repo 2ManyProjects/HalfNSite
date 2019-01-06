@@ -8,10 +8,7 @@ import CardActions from "@material-ui/core/CardActions";
 import Collapse from "@material-ui/core/Collapse";
 import IconButton from "@material-ui/core/IconButton";
 import red from "@material-ui/core/colors/red";
-import FavoriteIcon from "@material-ui/icons/Favorite";
-import ShareIcon from "@material-ui/icons/Share";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
-import MoreVertIcon from "@material-ui/icons/MoreVert";
 import { withStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
 
@@ -66,15 +63,11 @@ class Mail extends React.Component {
 
   render() {
     const { classes } = this.props;
+    console.log("Mail", this.props);
     return (
       <div>
         <Card className={classes.card}>
           <CardHeader
-            action={
-              <IconButton>
-                <MoreVertIcon />
-              </IconButton>
-            }
             title={
               <div>
                 From: {this.props.from}
@@ -87,12 +80,6 @@ class Mail extends React.Component {
             <CardContent>{this.props.content}</CardContent>
           </CardContent>
           <CardActions className={classes.actions} disableActionSpacing>
-            <IconButton aria-label="Add to favorites">
-              <FavoriteIcon />
-            </IconButton>
-            <IconButton aria-label="Share">
-              <ShareIcon />
-            </IconButton>
             <IconButton
               className={classnames(classes.expand, {
                 [classes.expandOpen]: this.state.expanded
