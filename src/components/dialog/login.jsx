@@ -112,7 +112,7 @@ class Login extends Component {
   state = {
     openLogin: false,
     openRegister: false,
-    username: "test",
+    username: "Shaiv",
     password: "test",
     formErrors: {
       registerEmail: "",
@@ -647,7 +647,7 @@ class Login extends Component {
                     autoFocus
                     margin="dense"
                     id="username"
-                    value="test"
+                    value={this.state.username}
                     label="Username"
                     type="username"
                     onChange={this.loginChange}
@@ -658,7 +658,7 @@ class Login extends Component {
                     autoFocus
                     margin="dense"
                     id="password"
-                    value="test"
+                    value={this.state.password}
                     label="Password"
                     type="password"
                     onChange={this.loginChange}

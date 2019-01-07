@@ -3,6 +3,8 @@ import axios from "axios";
 import Suggestions from "./suggestions";
 import ReactTable from "react-table";
 import "react-table/react-table.css";
+import Email from "./../dialog/buyingDialog";
+import Button from "@material-ui/core/Button";
 
 import API_K from "./../../keys";
 const APPLICATION_ID = "C499EC1A-F6D2-77C2-FFCF-14A634B64900";
@@ -13,11 +15,14 @@ const serverURL =
 class Search extends Component {
   state = {
     query: "",
+    storeName: "",
     results: [],
     showTable: false,
     userIDs: [],
     userData: [],
-    tableData: []
+    tableData: [],
+    show: false,
+    profile: {}
   };
 
   handleInputChange = () => {
@@ -60,8 +65,11 @@ class Search extends Component {
             "%25'"
         )
         .then(result => {
+          let name = "";
+          if (result.data[0] !== undefined) name = result.data[0].Name;
           this.setState({
-            results: result.data
+            results: result.data,
+            storeName: name
           });
         });
     } else {
@@ -76,15 +84,18 @@ class Search extends Component {
 
   fillID = () => {
     let tempArr = [];
-    for (let i = 0; i < this.state.results.length; i++) {
-      if (this.state.results[i].UserList !== null) {
-        let newArr = JSON.parse(this.state.results[i].UserList);
-        if (this.props.getLogged) {
-          newArr = newArr.filter(id => id !== this.props.getUser.objectId);
-        }
-        tempArr = tempArr.concat(newArr);
+    // for (let i = 0; i < this.state.results.length; i++) {
+    if (
+      this.state.results[0] !== undefined &&
+      this.state.results[0].UserList !== null
+    ) {
+      let newArr = JSON.parse(this.state.results[0].UserList);
+      if (this.props.getLogged) {
+        newArr = newArr.filter(id => id !== this.props.getUser.objectId);
       }
+      tempArr = tempArr.concat(newArr);
     }
+    // }
     this.setState({
       userIDs: tempArr
     });
@@ -227,7 +238,6 @@ class Search extends Component {
 
   sendTestEmail = (e, props) => {
     e.preventDefault();
-    console.log("DATA", props);
     const jsonData = {
       subject: "New MESSAGE",
       bodyparts: {
@@ -235,15 +245,16 @@ class Search extends Component {
       },
       to: ["hello.half.n.half@gmail.com"]
     };
-    console.log(serverURL + "messaging/email");
-    axios
-      .post(serverURL + "messaging/email", jsonData)
-      .then(function(response) {
-        console.log("Sent", response);
-      })
-      .catch(function(error) {
-        console.log("Error", error);
-      });
+
+    // axios
+    //   .post(serverURL + "messaging/email", jsonData)
+    //   .then(function(response) {
+    //     console.log("Sent", response);
+    //   })
+    //   .catch(function(error) {
+    //     console.log("Error", error);
+    //   });
+    this.setState({ show: true, profile: props });
   };
 
   render() {
@@ -252,14 +263,16 @@ class Search extends Component {
         Header: "Select",
         id: "button",
         accessor: d => d,
-        maxWidth: 100,
+        maxWidth: 130,
         Cell: props => (
-          <button
+          <Button
+            disabled={!this.props.getLogged}
             onClick={e => this.sendTestEmail(e, props.original)}
-            className="btn btn-secondary btn-sm m-2 btnhvr"
+            color="primary"
+            variant="outlined"
           >
             Send Email
-          </button>
+          </Button>
         ) // Custom cell components!
       },
       {
@@ -300,6 +313,18 @@ class Search extends Component {
           />
           <Suggestions results={this.state.results} />
           <br />
+          {/* <div hidden={!this.state.show}> */}
+          <Email
+            show={this.state.show}
+            storeName={this.state.storeName}
+            profile={this.state.profile}
+            getUser={this.props.getUser}
+            emailLink={serverURL + "messaging/email"}
+            close={() => {
+              this.setState({ show: false, deal: {} });
+            }}
+          />
+          {/* </div> */}
           <center>
             <ReactTable
               data={this.state.tableData}

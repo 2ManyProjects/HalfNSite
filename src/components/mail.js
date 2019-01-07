@@ -11,13 +11,11 @@ import red from "@material-ui/core/colors/red";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { withStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
 import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import { Editor, EditorState } from "draft-js";
+import { Editor, EditorState, RichUtils } from "draft-js";
 
 const styles = theme => ({
   root: {
@@ -50,10 +48,6 @@ const styles = theme => ({
 });
 
 class Mail extends React.Component {
-  constructor(props) {
-    super(props);
-    this.onChange = editorState => this.setState({ editorState });
-  }
   state = {
     expanded: false,
     expandable: false,
@@ -61,6 +55,12 @@ class Mail extends React.Component {
     open: false,
     editorState: EditorState.createEmpty()
   };
+
+  constructor(props) {
+    super(props);
+    this.onChange = editorState => this.setState({ editorState });
+    this.handleKeyCommand = this.handleKeyCommand.bind(this);
+  }
 
   handleClickOpen = () => {
     this.setState({ open: true });
@@ -88,6 +88,15 @@ class Mail extends React.Component {
 
   componentWillReceiveProps() {
     this.isExpandable();
+  }
+
+  handleKeyCommand(command, editorState) {
+    const newState = RichUtils.handleKeyCommand(editorState, command);
+    if (newState) {
+      this.onChange(newState);
+      return "handled";
+    }
+    return "not-handled";
   }
 
   render() {
@@ -138,11 +147,14 @@ class Mail extends React.Component {
           open={this.state.open}
           onClose={this.handleClose}
           aria-labelledby="form-dialog-title"
+          maxWidth="md"
+          fullWidth={true}
         >
           <DialogTitle id="form-dialog-title">Email</DialogTitle>
           <DialogContent>
             <Editor
               editorState={this.state.editorState}
+              handleKeyCommand={this.handleKeyCommand}
               onChange={this.onChange}
             />
           </DialogContent>

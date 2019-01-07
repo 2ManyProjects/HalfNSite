@@ -26,7 +26,6 @@ class MailContainer extends React.Component {
     } else if (this.props.folder === "Buyer") {
       email = messageData.buyingEmails;
     }
-    console.log("Content", email);
 
     axios
       .get(email)
@@ -43,7 +42,6 @@ class MailContainer extends React.Component {
                   <div key={reply_index} className="content">
                     <Mail
                       key={reply_index}
-                      id={re.reply_id}
                       from={re.from}
                       to={re.to}
                       subject={re.title}
@@ -82,7 +80,6 @@ class MailContainer extends React.Component {
         }
       })
       .catch(function(error) {
-        // console.log("File Link ", email);
         // console.log("Error Finding File", error.message);
       });
   };
