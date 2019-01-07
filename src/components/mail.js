@@ -11,6 +11,13 @@ import red from "@material-ui/core/colors/red";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { withStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
+import TextField from "@material-ui/core/TextField";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import { Editor, EditorState } from "draft-js";
 
 const styles = theme => ({
   root: {
@@ -43,7 +50,25 @@ const styles = theme => ({
 });
 
 class Mail extends React.Component {
-  state = { expanded: false, expandable: false, reply: false };
+  constructor(props) {
+    super(props);
+    this.onChange = editorState => this.setState({ editorState });
+  }
+  state = {
+    expanded: false,
+    expandable: false,
+    reply: false,
+    open: false,
+    editorState: EditorState.createEmpty()
+  };
+
+  handleClickOpen = () => {
+    this.setState({ open: true });
+  };
+
+  handleClose = () => {
+    this.setState({ open: false });
+  };
 
   handleExpandClick = () => {
     this.setState(state => ({ expanded: !state.expanded }));
@@ -104,13 +129,32 @@ class Mail extends React.Component {
             className="m-2"
             variant="contained"
             color="secondary"
-            onClick={() => {
-              console.log("REPLY", this.props.subject);
-            }}
+            onClick={this.handleClickOpen}
           >
             Reply
           </Button>
         </Card>
+        <Dialog
+          open={this.state.open}
+          onClose={this.handleClose}
+          aria-labelledby="form-dialog-title"
+        >
+          <DialogTitle id="form-dialog-title">Email</DialogTitle>
+          <DialogContent>
+            <Editor
+              editorState={this.state.editorState}
+              onChange={this.onChange}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.handleClose} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={this.handleClose} color="primary">
+              Send
+            </Button>
+          </DialogActions>
+        </Dialog>
         <br />
       </div>
     );

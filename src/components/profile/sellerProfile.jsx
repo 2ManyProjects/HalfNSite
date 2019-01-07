@@ -12,6 +12,7 @@ import { FormErrors } from "./../dialog/FormErrors";
 import { Marker, GoogleApiWrapper } from "google-maps-react";
 import CurrentLocation from "./Map";
 import InfoWindowEx from "./InfoWind";
+import Api_Key from "./../../keys";
 let fill = 0;
 export class SellerProfile extends Component {
   constructor(props) {
@@ -260,5 +261,5 @@ export class SellerProfile extends Component {
 }
 
 export default GoogleApiWrapper({
-  apiKey: "AIzaSyApfIryWW-NDUkgpTpKwEsy5OsR1GsaGQo"
+  apiKey: Api_Key[2]
 })(SellerProfile);
