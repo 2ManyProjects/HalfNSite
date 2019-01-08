@@ -16,6 +16,7 @@ class HomePage extends Component {
         <center>
           <StoreSearch
             getUser={this.props.getUser}
+            getMessage={this.props.getMessage}
             getLogged={this.props.getLogged}
           />
         </center>

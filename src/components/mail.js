@@ -15,7 +15,7 @@ import Dialog from "@material-ui/core/Dialog";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
-import { Editor, EditorState, RichUtils } from "draft-js";
+import TextField from "@material-ui/core/TextField";
 
 const styles = theme => ({
   root: {
@@ -53,15 +53,8 @@ class Mail extends React.Component {
     expandable: false,
     reply: false,
     open: false,
-    editorState: EditorState.createEmpty()
+    text: ""
   };
-
-  constructor(props) {
-    super(props);
-    this.onChange = editorState => this.setState({ editorState });
-    this.handleKeyCommand = this.handleKeyCommand.bind(this);
-  }
-
   handleClickOpen = () => {
     this.setState({ open: true });
   };
@@ -77,7 +70,7 @@ class Mail extends React.Component {
   isExpandable = () => {
     if (this.props.reply !== undefined) {
       let expand = false;
-      if (this.props.reply.props.children[1] !== "") {
+      if (this.props.reply.props.children[1].length > 0) {
         expand = true;
       }
       this.setState({ expandable: expand, reply: true });
@@ -86,17 +79,15 @@ class Mail extends React.Component {
     }
   };
 
-  componentWillReceiveProps() {
-    this.isExpandable();
-  }
+  valChange = e => {
+    let value = e.target.value;
+    this.setState({
+      text: value
+    });
+  };
 
-  handleKeyCommand(command, editorState) {
-    const newState = RichUtils.handleKeyCommand(editorState, command);
-    if (newState) {
-      this.onChange(newState);
-      return "handled";
-    }
-    return "not-handled";
+  componentDidMount() {
+    this.isExpandable();
   }
 
   render() {
@@ -152,10 +143,16 @@ class Mail extends React.Component {
         >
           <DialogTitle id="form-dialog-title">Email</DialogTitle>
           <DialogContent>
-            <Editor
-              editorState={this.state.editorState}
-              handleKeyCommand={this.handleKeyCommand}
-              onChange={this.onChange}
+            <TextField
+              margin="dense"
+              id="text"
+              label="Details"
+              type="text"
+              onChange={this.valChange}
+              required={true}
+              multiline={true}
+              inputProps={{ maxLength: 400 }}
+              fullWidth
             />
           </DialogContent>
           <DialogActions>

@@ -141,7 +141,7 @@ class App extends Component {
   handleStoreDelete = cardID => {
     const storeData = this.state.storeData.filter(c => c.ID !== cardID);
     this.setState({ storeData: storeData }, () => {
-      const whereClause = "StoreID = " + "'" + cardID + "'";
+      const whereClause = "StoreID = '" + cardID + "'";
       const queryBuilder = Backendless.DataQueryBuilder.create().setWhereClause(
         whereClause
       );
@@ -201,7 +201,7 @@ class App extends Component {
     storeData.push(newStore);
     console.log("STOREDATA", storeData);
     this.setState({ storeData: storeData }, () => {
-      const whereClause = "StoreID = " + "'" + store.ID + "'";
+      const whereClause = "StoreID = '" + store.ID + "'";
       const queryBuilder = Backendless.DataQueryBuilder.create().setWhereClause(
         whereClause
       );
@@ -336,6 +336,7 @@ class App extends Component {
           <HomePage
             getUser={this.state.userData}
             getLogged={this.state.loggedin}
+            getMessage={this.state.messageData}
           />
         </div>
         <div hidden={!this.state.show.sellerPage}>

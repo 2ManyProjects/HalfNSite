@@ -157,13 +157,7 @@ export class SellerProfile extends Component {
   }
 
   render() {
-    const {
-      storeData,
-      onDealDelete,
-      onDealEdit,
-      onDelete,
-      onDealCreate
-    } = this.props;
+    const { onDealDelete, onDealEdit, onDelete, onDealCreate } = this.props;
     const data = this.state.places;
     return (
       <span>

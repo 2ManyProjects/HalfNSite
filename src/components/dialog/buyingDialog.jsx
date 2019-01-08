@@ -14,6 +14,8 @@ import Menu from "@material-ui/core/Menu";
 import MenuItem from "@material-ui/core/MenuItem";
 import Fade from "@material-ui/core/Fade";
 import Slider from "@material-ui/lab/Slider";
+import Backendless from "backendless";
+import API_K from "./../../keys";
 const styles = {
   root: {
     width: 300
@@ -104,7 +106,7 @@ class buyingDialog extends Component {
 
   renderMenu = () => {
     let content = this.state.userData.storeDeals.map((deal, index) => {
-      if (deal.currentAmnt === 0) return;
+      if (deal.currentAmnt === 0) return <div hidden={true} />;
       return (
         <MenuItem
           onClick={() => {
@@ -125,9 +127,7 @@ class buyingDialog extends Component {
     if (this.state.selectedDeal.rate === undefined) {
       return "Select Deal";
     } else {
-      return (
-        this.state.selectedDeal.rate + "%" + " " + this.state.selectedDeal.id
-      );
+      return this.state.selectedDeal.rate + "% " + this.state.selectedDeal.id;
     }
   };
 
@@ -205,10 +205,26 @@ class buyingDialog extends Component {
   };
 
   handleSendMail = () => {
+    const id = this.generateGuid();
+    const self = this;
+    let deal = this.state.selectedDeal;
+    deal.selectedAmnt = this.state.email.amnt;
+    const email = {
+      id: id,
+      from: this.props.getUser.name,
+      to: this.state.userData.seller,
+      storeName: this.state.storeName,
+      selectedDeal: this.state.selectedDeal,
+      subject: this.state.email.amnt + " of " + this.state.email.link,
+      content: this.state.email.txt,
+      seen: false,
+      completed: false,
+      reply: []
+    };
     // const jsonData = {
-    //   subject: "New MESSAGE",
+    //   subject: "New Order",
     //   bodyparts: {
-    //     textmessage: props.objectID
+    //     textmessage: JSON.stringify(email)
     //   },
     //   to: ["hello.half.n.half@gmail.com"]
     // };
@@ -221,21 +237,65 @@ class buyingDialog extends Component {
     //   .catch(function(error) {
     //     console.log("Error", error);
     //   });
-    this.setState({
-      open: false,
-      storeName: "",
-      profile: {},
-      userData: {},
-      content: "",
-      anchorEl: null,
-      selectedDeal: {},
-      email: { amnt: 1, link: "", txt: "" },
-      disabled: true,
-      Errors: {
-        txt: ""
+
+    axios
+      .get(this.props.getMessage.buyingEmails)
+      .then(function(response) {
+        let emailList = response.data;
+        emailList.push(email);
+        const path = "profileData/" + self.props.getUser.objectId + "/";
+        const emails = new Blob([JSON.stringify(emailList)], {
+          type: "application/json"
+        });
+        Backendless.Files.saveFile(path, "buyingemails.txt", emails, true)
+          .then(function(fileURL) {
+            axios
+              .get(API_K[3] + "buyingemails.txt")
+              .then(function(response) {
+                let adminEmailList = response.data;
+                adminEmailList.push(email);
+                const filePath = "profileData/" + API_K[4] + "/";
+                const adminEmails = new Blob([JSON.stringify(adminEmailList)], {
+                  type: "application/json"
+                });
+                Backendless.Files.saveFile(
+                  filePath,
+                  "buyingemails.txt",
+                  adminEmails,
+                  true
+                )
+                  .then(function(fileURL) {})
+                  .catch(function(error) {});
+              })
+              .catch(function(error) {
+                console.log("Error", error);
+              });
+          })
+          .catch(function(error) {});
+      })
+      .catch(function(error) {
+        console.log("Error", error);
+      });
+
+    this.setState(
+      {
+        open: false,
+        storeName: "",
+        profile: {},
+        userData: {},
+        content: "",
+        anchorEl: null,
+        selectedDeal: {},
+        email: { amnt: 1, link: "", txt: "" },
+        disabled: true,
+        Errors: {
+          txt: ""
+        }
+      },
+      () => {
+        this.props.close();
       }
-    });
-    this.props.close();
+    );
   };
 
   render() {

@@ -238,22 +238,7 @@ class Search extends Component {
 
   sendTestEmail = (e, props) => {
     e.preventDefault();
-    const jsonData = {
-      subject: "New MESSAGE",
-      bodyparts: {
-        textmessage: props.objectID
-      },
-      to: ["hello.half.n.half@gmail.com"]
-    };
 
-    // axios
-    //   .post(serverURL + "messaging/email", jsonData)
-    //   .then(function(response) {
-    //     console.log("Sent", response);
-    //   })
-    //   .catch(function(error) {
-    //     console.log("Error", error);
-    //   });
     this.setState({ show: true, profile: props });
   };
 
@@ -319,6 +304,7 @@ class Search extends Component {
             storeName={this.state.storeName}
             profile={this.state.profile}
             getUser={this.props.getUser}
+            getMessage={this.props.getMessage}
             emailLink={serverURL + "messaging/email"}
             close={() => {
               this.setState({ show: false, deal: {} });
