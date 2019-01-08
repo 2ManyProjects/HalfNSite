@@ -3,6 +3,7 @@ import React, { Component } from "react";
 import "./style.scss";
 import API_K from "./../../keys";
 import axios from "axios";
+import Button from "@material-ui/core/Button";
 
 const APPLICATION_ID = "C499EC1A-F6D2-77C2-FFCF-14A634B64900";
 const API_KEY = API_K[0];
@@ -83,23 +84,33 @@ class titleSection extends Component {
       <div>
         <center>
           <br />
-          <div hidden={this.getHidden()} className="subtitle">
+          <div
+            hidden={this.getHidden() || !this.props.getLogged}
+            className="subtitle"
+          >
             Help us choose our tag line
           </div>
-          <button
-            hidden={this.getHidden()}
+
+          <Button
+            disabled={!this.props.getLogged}
+            hidden={this.getHidden() || !this.props.getLogged}
             onClick={e => this.handleVote(0)}
             className="btn btn-secondary btn-sm m-2 btnhvr hiding"
+            variant="contained"
+            color="primary"
           >
             A Friend in Every Store
-          </button>
-          <button
-            hidden={this.getHidden()}
+          </Button>
+          <Button
+            disabled={!this.props.getLogged}
+            hidden={this.getHidden() || !this.props.getLogged}
             onClick={e => this.handleVote(1)}
-            className="btn btn-secondary btn-sm btnhvr hiding"
+            className="btn btn-secondary btn-sm m-2 btnhvr hiding"
+            variant="contained"
+            color="primary"
           >
             Friends with Employee Benefits
-          </button>
+          </Button>
           <span className="subtitle">{this.renderTagline()}</span>
         </center>
       </div>

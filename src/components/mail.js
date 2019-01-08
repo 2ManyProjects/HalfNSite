@@ -16,6 +16,10 @@ import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
+import { FormErrors } from "./dialog/FormErrors";
+import axios from "axios";
+import Backendless from "backendless";
+import API_K from "./../keys";
 
 const styles = theme => ({
   root: {
@@ -53,7 +57,11 @@ class Mail extends React.Component {
     expandable: false,
     reply: false,
     open: false,
-    text: ""
+    text: "",
+    disabled: true,
+    Errors: {
+      message: ""
+    }
   };
   handleClickOpen = () => {
     this.setState({ open: true });
@@ -81,14 +89,206 @@ class Mail extends React.Component {
 
   valChange = e => {
     let value = e.target.value;
-    this.setState({
-      text: value
+    this.setState(
+      {
+        text: value
+      },
+      () => this.validateChange()
+    );
+  };
+
+  sendMail = () => {
+    const self = this;
+    let mailTo = "";
+    let record;
+    let emailLink;
+    if (this.props.folder === "Seller") {
+      record = "sellingemails.txt";
+      emailLink = this.props.getMessage.sellingEmails;
+    } else if (this.props.folder === "Buyer") {
+      record = "buyingemails.txt";
+      emailLink = this.props.getMessage.buyingEmails;
+    }
+    if (this.props.getName === "Admin") {
+      if (record === "sellingemails.txt") {
+        mailTo = this.props.to;
+      } else {
+        mailTo = this.props.from;
+      }
+    } else {
+      mailTo = "Admin";
+    }
+
+    const email = {
+      from: this.props.getName,
+      to: mailTo,
+      content: this.state.text,
+      seen: false
+    };
+    // const jsonData = {
+    //   subject: "New Order",
+    //   bodyparts: {
+    //     textmessage: JSON.stringify(email)
+    //   },
+    //   to: ["hello.half.n.half@gmail.com"]
+    // };
+
+    // axios
+    //   .post(this.props.emailLink, jsonData)
+    //   .then(function(response) {
+    //     console.log("Sent", response);
+    //   })
+    //   .catch(function(error) {
+    //     console.log("Error", error);
+    //   });
+
+    axios
+      .get(emailLink)
+      .then(function(response) {
+        let emailList = response.data;
+        let id = self.props.id;
+        for (let x = 0; x < emailList.length; x++) {
+          if (emailList[x].id === id) {
+            let replies = emailList[x].reply;
+            replies.push(email);
+            emailList[x].reply = replies;
+          }
+        }
+        const path = "profileData/" + self.props.objectId + "/";
+        const emails = new Blob([JSON.stringify(emailList)], {
+          type: "application/json"
+        });
+        Backendless.Files.saveFile(path, record, emails, true)
+          .then(function(fileURL) {
+            if (emailLink === API_K[3] + record) {
+              const whereClause = "name = '" + self.props.from + "'";
+              const queryBuilder = Backendless.DataQueryBuilder.create().setWhereClause(
+                whereClause
+              );
+              Backendless.Data.of("Messaging")
+                .find(queryBuilder)
+                .then(function(foundUser) {
+                  let link = "";
+                  if (record === "sellingemails.txt") {
+                    link = foundUser[0].sellingEmails;
+                  } else {
+                    link = foundUser[0].buyingEmails;
+                  }
+                  axios
+                    .get(link)
+                    .then(function(result) {
+                      let otherEmailList = result.data;
+                      console.log("Other Emailer", result.data);
+                      for (let x = 0; x < emailList.length; x++) {
+                        if (otherEmailList[x].id === id) {
+                          let replies = otherEmailList[x].reply;
+                          replies.push(email);
+                          otherEmailList[x].reply = replies;
+                        }
+                      }
+                      const filePath =
+                        "profileData/" + foundUser[0].userID + "/";
+                      const otherEmails = new Blob(
+                        [JSON.stringify(otherEmailList)],
+                        {
+                          type: "application/json"
+                        }
+                      );
+                      Backendless.Files.saveFile(
+                        filePath,
+                        record,
+                        otherEmails,
+                        true
+                      )
+                        .then(function(fileURL) {})
+                        .catch(function(error) {});
+                    })
+                    .catch(function(error) {
+                      console.log("Error", error);
+                    });
+                })
+                .catch(function(fault) {});
+            } else {
+              axios
+                .get(API_K[3] + record)
+                .then(function(result) {
+                  let otherEmailList = result.data;
+                  for (let x = 0; x < emailList.length; x++) {
+                    if (otherEmailList[x].id === id) {
+                      let replies = otherEmailList[x].reply;
+                      replies.push(email);
+                      otherEmailList[x].reply = replies;
+                    }
+                  }
+                  const filePath = "profileData/" + API_K[4] + "/";
+                  const otherEmails = new Blob(
+                    [JSON.stringify(otherEmailList)],
+                    {
+                      type: "application/json"
+                    }
+                  );
+                  Backendless.Files.saveFile(
+                    filePath,
+                    record,
+                    otherEmails,
+                    true
+                  )
+                    .then(function(fileURL) {})
+                    .catch(function(error) {});
+                })
+                .catch(function(error) {
+                  console.log("Error", error);
+                });
+            }
+          })
+          .catch(function(error) {});
+      })
+      .catch(function(error) {
+        console.log("Error", error);
+      });
+
+    this.setState(
+      {
+        open: false,
+        text: "",
+        Errors: {
+          message: ""
+        }
+      },
+      () => {
+        this.handleClose();
+      }
+    );
+  };
+
+  validateChange = () => {
+    // console.log("Text", this.state.text, this.state.text.length < 2);
+    let Err = this.state.Errors;
+    if (this.state.text.length === 0) {
+      Err.message = "cannot be empty";
+    } else {
+      Err.message = "";
+    }
+    this.setState({ Errors: Err }, () => {
+      this.validateErrors();
     });
+  };
+
+  validateErrors = () => {
+    const val = this.state.Errors.message.length > 0;
+    this.setState({ disabled: val });
   };
 
   componentDidMount() {
     this.isExpandable();
   }
+
+  getName() {
+    if (this.props.to !== this.props.getName) return this.props.to;
+    else return this.props.from;
+  }
+
+  componentDidUpdate() {}
 
   render() {
     const { classes } = this.props;
@@ -141,7 +341,12 @@ class Mail extends React.Component {
           maxWidth="md"
           fullWidth={true}
         >
-          <DialogTitle id="form-dialog-title">Email</DialogTitle>
+          <DialogTitle id="form-dialog-title">
+            Email to: {this.getName()}
+          </DialogTitle>
+          <div className="panel panel-default warning">
+            <FormErrors formErrors={this.state.Errors} />
+          </div>
           <DialogContent>
             <TextField
               margin="dense"
@@ -154,12 +359,17 @@ class Mail extends React.Component {
               inputProps={{ maxLength: 400 }}
               fullWidth
             />
+            {this.state.text.length}/400
           </DialogContent>
           <DialogActions>
             <Button onClick={this.handleClose} color="primary">
               Cancel
             </Button>
-            <Button onClick={this.handleClose} color="primary">
+            <Button
+              disabled={this.state.disabled}
+              onClick={this.sendMail}
+              color="primary"
+            >
               Send
             </Button>
           </DialogActions>

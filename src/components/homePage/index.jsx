@@ -11,7 +11,7 @@ class HomePage extends Component {
   render() {
     return (
       <React.Fragment>
-        <TitleSection />
+        <TitleSection getLogged={this.props.getLogged} />
         <StoreCardSection />
         <center>
           <StoreSearch

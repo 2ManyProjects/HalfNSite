@@ -30,10 +30,18 @@ class App extends Component {
           </Button>
         </center>
         <div hidden={!this.state.showActive}>
-          <MailContainer getMessage={this.props.getMessage()} folder="Seller" />
+          <MailContainer
+            getUser={this.props.getUser}
+            getMessage={this.props.getMessage()}
+            folder="Seller"
+          />
         </div>
         <div hidden={this.state.showActive}>
-          <MailContainer getMessage={this.props.getMessage()} folder="Buyer" />
+          <MailContainer
+            getUser={this.props.getUser}
+            getMessage={this.props.getMessage()}
+            folder="Buyer"
+          />
         </div>
       </div>
     );

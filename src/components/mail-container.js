@@ -33,7 +33,7 @@ class MailContainer extends React.Component {
         mails = response.data;
         if (mails !== undefined) {
           content = mails.map((mail, index) => {
-            console.log(mail);
+            // console.log(mail);
             let reply = "";
 
             if (mail.reply !== undefined) {
@@ -58,6 +58,10 @@ class MailContainer extends React.Component {
               <center key={index} className="content">
                 <Mail
                   key={index}
+                  folder={self.props.folder}
+                  getName={self.props.getUser.name}
+                  objectId={self.props.getUser.objectId}
+                  getMessage={self.props.getMessage}
                   id={mailItem.id}
                   from={mailItem.from}
                   to={mailItem.to}

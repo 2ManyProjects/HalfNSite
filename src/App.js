@@ -330,7 +330,10 @@ class App extends Component {
           updatePage={this.changePage}
         />
         <div hidden={!this.state.show.mailbox}>
-          <MailBox getMessage={this.getMessageData} />
+          <MailBox
+            getUser={this.state.userData}
+            getMessage={this.getMessageData}
+          />
         </div>
         <div hidden={!this.state.show.homePage}>
           <HomePage
