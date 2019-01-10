@@ -114,7 +114,9 @@ export class SellerProfile extends Component {
     const data = this.state.selectedPlace.data;
     const storeData = {
       StoreID: data.place_id,
-      Name: data.name
+      Name: data.name,
+      Lat: data.geometry.location.lat(),
+      Long: data.geometry.location.lng()
     };
     this.props.onCreate(storeData, data);
     this.handleClose();

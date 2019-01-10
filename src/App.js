@@ -10,6 +10,7 @@ import Snackbar from "@material-ui/core/Snackbar";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import MailBox from "./components/app";
+import axios from "axios";
 
 // import Button from "@material-ui/core/Button";
 import API_K from "./keys";
@@ -45,10 +46,30 @@ class App extends Component {
       buyerPage: false,
       accountPage: false
     },
+    currentLocation: {
+      lat: 0,
+      lng: 0
+    },
     storeData: []
   };
 
-  componentDidMount() {}
+  componentDidMount() {
+    const self = this;
+    axios
+      .get("http://ipinfo.io?token=ce9d47e2eb3f65")
+      .then(function(response) {
+        const arr = response.data.loc.split(",");
+        self.setState({
+          currentLocation: {
+            lat: parseFloat(arr[1]),
+            lng: parseFloat(arr[0])
+          }
+        });
+      })
+      .catch(function(error) {
+        console.log("Error", error);
+      });
+  }
 
   changePage = x => {
     let data;
@@ -118,7 +139,19 @@ class App extends Component {
   };
 
   initUserData = jsonData => {
-    this.setState({ loggedin: true, userData: jsonData });
+    this.setState({ loggedin: true, userData: jsonData }, () => {
+      if (navigator && navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(pos => {
+          const coords = pos.coords;
+          this.setState({
+            currentLocation: {
+              lat: coords.latitude,
+              lng: coords.longitude
+            }
+          });
+        });
+      }
+    });
   };
 
   initMessageData = jsonData => {
@@ -338,6 +371,7 @@ class App extends Component {
         <div hidden={!this.state.show.homePage}>
           <HomePage
             getUser={this.state.userData}
+            getCoords={this.state.currentLocation}
             getLogged={this.state.loggedin}
             getMessage={this.state.messageData}
           />

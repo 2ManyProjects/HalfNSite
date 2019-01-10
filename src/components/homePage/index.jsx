@@ -15,6 +15,7 @@ class HomePage extends Component {
         <StoreCardSection />
         <center>
           <StoreSearch
+            getCoords={this.props.getCoords}
             getUser={this.props.getUser}
             getMessage={this.props.getMessage}
             getLogged={this.props.getLogged}

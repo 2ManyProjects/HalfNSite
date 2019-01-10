@@ -57,6 +57,7 @@ class Search extends Component {
 
   getInfo = submitting => {
     if (!submitting) {
+      const self = this;
       axios
         .get(
           serverURL +
@@ -67,14 +68,39 @@ class Search extends Component {
         .then(result => {
           let name = "";
           if (result.data[0] !== undefined) name = result.data[0].Name;
+          const newArr = result.data.filter(store => {
+            const distance = self.getDistance(store.Lat, store.Long);
+            if (distance < 100) return store;
+            else return null;
+          });
+
           this.setState({
-            results: result.data,
+            results: newArr,
             storeName: name
           });
         });
     } else {
       this.fillID();
     }
+  };
+
+  getDistance = (lat, lon) => {
+    var R = 6371; // Radius of the earth in km
+    var dLat = this.deg2rad(lat - this.props.getCoords.lat); // deg2rad below
+    var dLon = this.deg2rad(lon - this.props.getCoords.lng);
+    var a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(this.deg2rad(this.props.getCoords.lat)) *
+        Math.cos(this.deg2rad(lat)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    var c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    var d = R * c; // Distance in km
+    return d;
+  };
+
+  deg2rad = deg => {
+    return deg * (Math.PI / 180);
   };
 
   getDealType = bool => {
@@ -84,18 +110,18 @@ class Search extends Component {
 
   fillID = () => {
     let tempArr = [];
-    // for (let i = 0; i < this.state.results.length; i++) {
-    if (
-      this.state.results[0] !== undefined &&
-      this.state.results[0].UserList !== null
-    ) {
-      let newArr = JSON.parse(this.state.results[0].UserList);
-      if (this.props.getLogged) {
-        newArr = newArr.filter(id => id !== this.props.getUser.objectId);
+    for (let i = 0; i < this.state.results.length; i++) {
+      if (
+        this.state.results[0] !== undefined &&
+        this.state.results[0].UserList !== null
+      ) {
+        let newArr = JSON.parse(this.state.results[0].UserList);
+        if (this.props.getLogged) {
+          newArr = newArr.filter(id => id !== this.props.getUser.objectId);
+        }
+        tempArr = tempArr.concat(newArr);
       }
-      tempArr = tempArr.concat(newArr);
     }
-    // }
     this.setState({
       userIDs: tempArr
     });
