@@ -19,6 +19,7 @@ import TextField from "@material-ui/core/TextField";
 import { FormErrors } from "./dialog/FormErrors";
 import axios from "axios";
 import Backendless from "backendless";
+import PassThrough from "./dialog/passthrough";
 import API_K from "./../keys";
 
 const styles = theme => ({
@@ -54,9 +55,11 @@ const styles = theme => ({
 class Mail extends React.Component {
   state = {
     expanded: false,
+    show: false,
     expandable: false,
     reply: false,
     open: false,
+    email: {},
     text: "",
     disabled: true,
     Errors: {
@@ -179,7 +182,7 @@ class Mail extends React.Component {
                     .then(function(result) {
                       let otherEmailList = result.data;
                       console.log("Other Emailer", result.data);
-                      for (let x = 0; x < emailList.length; x++) {
+                      for (let x = 0; x < otherEmailList.length; x++) {
                         if (otherEmailList[x].id === id) {
                           let replies = otherEmailList[x].reply;
                           replies.push(email);
@@ -274,6 +277,12 @@ class Mail extends React.Component {
     });
   };
 
+  isAdmin = () => {
+    if (!this.state.reply) return true;
+    else if (this.props.getName !== "Admin") return true;
+    else return false;
+  };
+
   validateErrors = () => {
     const val = this.state.Errors.message.length > 0;
     this.setState({ disabled: val });
@@ -289,6 +298,10 @@ class Mail extends React.Component {
   }
 
   componentDidUpdate() {}
+
+  openDialog = () => {
+    this.setState({ show: true, mail: this.props.mail });
+  };
 
   render() {
     const { classes } = this.props;
@@ -333,6 +346,26 @@ class Mail extends React.Component {
           >
             Reply
           </Button>
+
+          <Button
+            hidden={this.isAdmin()}
+            className="m-2"
+            variant="contained"
+            color="secondary"
+            onClick={this.openDialog}
+          >
+            Pass Through
+          </Button>
+          <PassThrough
+            getMessage={this.props.getMessage}
+            mail={this.state.mail}
+            show={this.state.show}
+            folder={this.props.folder}
+            objectId={this.props.objectId}
+            close={() => {
+              this.setState({ show: false, email: {} });
+            }}
+          />
         </Card>
         <Dialog
           open={this.state.open}

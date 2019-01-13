@@ -110,14 +110,15 @@ const styles = theme => ({
 
 class Login extends Component {
   state = {
+    disabled: false,
     openLogin: false,
     openRegister: false,
-    username: "Shaiv",
-    password: "test",
+    username: "Admin",
+    password: "thecowjumpsoverthemoon",
     formErrors: {
-      registerEmail: "",
-      registerPassword: "",
-      registerName: "",
+      email: "",
+      password: "",
+      name: "",
       registrationError: ""
     },
     loginErrors: {
@@ -167,53 +168,60 @@ class Login extends Component {
     else this.setState({ openRegister: false, openLogin: false });
   };
   handleRegister = () => {
-    let formErrors = this.state.formErrors;
-    const username = this.state.registerName;
-    const password = this.state.registerPassword;
-    const email = this.state.registerEmail;
-    const profileData = username + "#" + email + "#0#0#";
     const self = this;
+    this.setState(
+      {
+        disabled: true
+      },
+      () => {
+        let formErrors = this.state.formErrors;
+        const username = this.state.registerName;
+        const password = this.state.registerPassword;
+        const email = this.state.registerEmail;
+        const profileData = username + "#" + email + "#0#0#";
 
-    const jsonData = {
-      email: email,
-      name: username,
-      password: password,
-      profileData: profileData
-    };
-    axios
-      .post(serverURL + "users/register", jsonData)
-      .then(function(response) {
-        console.log("Register", response.data);
-        self.setState({ openRegister: false, openLogin: true });
-        const objID = response.data.objectId;
-        const msging = {
-          Received: "",
-          allMsgs: "",
+        const jsonData = {
+          email: email,
           name: username,
-          userID: objID
+          password: password,
+          profileData: profileData
         };
         axios
-          .post(serverURL + "data/Messaging", msging)
+          .post(serverURL + "users/register", jsonData)
           .then(function(response) {
-            console.log("Messaging", response.data);
-            //self.handleClose();
+            console.log("Register", response.data);
+            self.setState({ openRegister: false, openLogin: true });
+            const objID = response.data.objectId;
+            const msging = {
+              Received: "",
+              allMsgs: "",
+              name: username,
+              userID: objID
+            };
+            axios
+              .post(serverURL + "data/Messaging", msging)
+              .then(function(response) {
+                console.log("Messaging", response.data);
+                //self.handleClose();
+              })
+              .catch(function(error) {
+                console.log("Error", error.message);
+              });
           })
           .catch(function(error) {
+            formErrors.password = "";
+            formErrors.email = "";
+            formErrors.username = "";
+
+            formErrors.registrationError = error.message;
+
+            self.setState({
+              formErrors: formErrors
+            });
             console.log("Error", error.message);
           });
-      })
-      .catch(function(error) {
-        formErrors.password = "";
-        formErrors.email = "";
-        formErrors.username = "";
-
-        formErrors.registrationError = error.message;
-
-        self.setState({
-          formErrors: formErrors
-        });
-        console.log("Error", error.message);
-      });
+      }
+    );
   };
 
   setupFiles = () => {
@@ -324,95 +332,104 @@ class Login extends Component {
   };
 
   loginBackendless = () => {
-    const username = this.state.username;
-    const password = this.state.password;
     const self = this;
-    let loginValidationErrors = this.state.loginErrors;
-    let filled = true;
-    const str = " cannot be empty";
-    if (password.length === 0) {
-      loginValidationErrors.password = str;
-      filled = false;
-    } else {
-      loginValidationErrors.password = "";
-    }
-    if (username.length === 0) {
-      loginValidationErrors.username = str;
-      filled = false;
-    } else {
-      loginValidationErrors.username = "";
-    }
+    this.setState(
+      {
+        disabled: true
+      },
+      () => {
+        const username = self.state.username;
+        const password = self.state.password;
+        let loginValidationErrors = self.state.loginErrors;
+        let filled = true;
+        const str = " cannot be empty";
+        if (password.length === 0) {
+          loginValidationErrors.password = str;
+          filled = false;
+        } else {
+          loginValidationErrors.password = "";
+        }
+        if (username.length === 0) {
+          loginValidationErrors.username = str;
+          filled = false;
+        } else {
+          loginValidationErrors.username = "";
+        }
 
-    this.setState({
-      loginErrors: loginValidationErrors
-    });
+        self.setState({
+          loginErrors: loginValidationErrors
+        });
 
-    if (filled) {
-      const jsonData = { login: username, password: password };
+        if (filled) {
+          const jsonData = { login: username, password: password };
 
-      Backendless.UserService.login(jsonData.login, jsonData.password)
-        .then(function(response) {
-          console.log("Login", response);
-          self.props.onInit(response);
-          self.setState({ loggedin: true });
-          self.handleClose();
-          axios
-            .get(
-              serverURL +
-                "data/Messaging?where=name%20%3D%20'" +
-                jsonData.login +
-                "'"
-            )
+          Backendless.UserService.login(jsonData.login, jsonData.password)
             .then(function(response) {
-              const messageID = response.data[0].objectId;
-              const messageJson = { messageID: messageID };
-              const objID = self.props.getUser().objectId;
+              console.log("Login", response);
+              self.props.onInit(response);
+              self.setState({ loggedin: true });
+              self.handleClose();
               axios
-                .put(serverURL + "users/" + objID, messageJson, {
-                  headers: { "user-token": self.props.getAuth() }
-                })
+                .get(
+                  serverURL +
+                    "data/Messaging?where=name%20%3D%20'" +
+                    jsonData.login +
+                    "'"
+                )
                 .then(function(response) {
-                  self.setupFiles();
-                  if (self.props.getUser().profile !== null) {
-                    Backendless.Data.of("Messaging")
-                      .findById(messageID)
-                      .then(function(result) {
-                        self.props.onMessageInit(result);
-                      })
-                      .catch(function(error) {});
-                  }
+                  const messageID = response.data[0].objectId;
+                  const messageJson = { messageID: messageID };
+                  const objID = self.props.getUser().objectId;
                   axios
-                    .get(self.props.getUser().profile)
+                    .put(serverURL + "users/" + objID, messageJson, {
+                      headers: { "user-token": self.props.getAuth() }
+                    })
                     .then(function(response) {
-                      self.props.onStoreInit(response.data);
+                      self.setupFiles();
+                      if (self.props.getUser().profile !== null) {
+                        Backendless.Data.of("Messaging")
+                          .findById(messageID)
+                          .then(function(result) {
+                            self.props.onMessageInit(result);
+                          })
+                          .catch(function(error) {});
+                      }
+                      axios
+                        .get(self.props.getUser().profile)
+                        .then(function(response) {
+                          self.setState({ disabled: false });
+                          self.props.onStoreInit(response.data);
+                        });
+                    })
+                    .catch(function(error) {
+                      console.log("Error Updating User", error.message);
                     });
                 })
                 .catch(function(error) {
-                  console.log("Error Updating User", error.message);
+                  console.log("Error Finding Message", error.message);
                 });
             })
             .catch(function(error) {
-              console.log("Error Finding Message", error.message);
-            });
-        })
-        .catch(function(error) {
-          loginValidationErrors.password = "";
+              loginValidationErrors.password = "";
 
-          if (error.message === "Request failed with status code 401") {
-            loginValidationErrors.username = " or password is invalid";
-            loginValidationErrors.password = "";
-            loginValidationErrors.loginError = "";
-          }
-          if (error.message === "Request failed with status code 400") {
-            loginValidationErrors.loginError = " Email has not been verified";
-            loginValidationErrors.username = "";
-            loginValidationErrors.password = "";
-          }
-          self.setState({
-            loginErrors: loginValidationErrors
-          });
-        });
-    }
+              if (error.message === "Request failed with status code 401") {
+                loginValidationErrors.username = " or password is invalid";
+                loginValidationErrors.password = "";
+                loginValidationErrors.loginError = "";
+              }
+              if (error.message === "Request failed with status code 400") {
+                loginValidationErrors.loginError =
+                  " Email has not been verified";
+                loginValidationErrors.username = "";
+                loginValidationErrors.password = "";
+              }
+              self.setState({
+                loginErrors: loginValidationErrors
+              });
+            });
+        }
+      }
+    );
   };
 
   loginChange = e => {
@@ -475,7 +492,7 @@ class Login extends Component {
         passwordValid: passwordValid,
         nameValid: nameValid
       },
-      this.validateForm
+      this.validateForm()
     );
   }
 
@@ -675,7 +692,11 @@ class Login extends Component {
                   >
                     Register
                   </Button>
-                  <Button onClick={this.loginBackendless} color="primary">
+                  <Button
+                    disabled={this.state.disabled}
+                    onClick={this.loginBackendless}
+                    color="primary"
+                  >
                     Login
                   </Button>
                   <Button onClick={this.handleClose} color="secondary">
@@ -749,6 +770,13 @@ class Login extends Component {
                     Login
                   </Button>
                   <Button
+                    disabled={
+                      !(
+                        this.state.formErrors.email.length === 0 &&
+                        this.state.formErrors.name.length === 0 &&
+                        this.state.formErrors.password.length === 0
+                      ) || this.state.disabled
+                    }
                     hidden={this.state.loggedin}
                     onClick={this.handleRegister}
                     color="primary"

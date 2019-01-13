@@ -62,6 +62,7 @@ class MailContainer extends React.Component {
                   getName={self.props.getUser.name}
                   objectId={self.props.getUser.objectId}
                   getMessage={self.props.getMessage}
+                  mail={mailItem}
                   id={mailItem.id}
                   from={mailItem.from}
                   to={mailItem.to}
