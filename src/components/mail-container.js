@@ -44,6 +44,7 @@ class MailContainer extends React.Component {
                       key={reply_index}
                       from={re.from}
                       to={re.to}
+                      imageLinks={re.imageLinks}
                       subject={re.title}
                       content={re.content}
                     />

@@ -17,10 +17,14 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import TextField from "@material-ui/core/TextField";
 import { FormErrors } from "./dialog/FormErrors";
+import { DropzoneArea } from "material-ui-dropzone";
 import axios from "axios";
 import Backendless from "backendless";
 import PassThrough from "./dialog/passthrough";
 import API_K from "./../keys";
+import { StripeProvider } from "react-stripe-elements";
+
+import Checkout from "./payment/Checkout";
 
 const styles = theme => ({
   root: {
@@ -55,11 +59,21 @@ const styles = theme => ({
 class Mail extends React.Component {
   state = {
     expanded: false,
+    checkout: false,
+    stripe: null,
     show: false,
     expandable: false,
     reply: false,
     open: false,
     email: {},
+    image: false,
+    money: false,
+    value: 0,
+    imageLinks: [],
+    images: [],
+    downloadLinks: [],
+    files: [],
+    showImages: false,
     text: "",
     disabled: true,
     Errors: {
@@ -68,6 +82,12 @@ class Mail extends React.Component {
   };
   handleClickOpen = () => {
     this.setState({ open: true });
+  };
+  handlePayment = () => {
+    this.setState({ checkout: true });
+  };
+  handlePaymentClose = () => {
+    this.setState({ checkout: false });
   };
 
   handleClose = () => {
@@ -88,6 +108,17 @@ class Mail extends React.Component {
     } else {
       this.setState({ expandable: false });
     }
+    console.log("Mail", this.props.mail);
+    if (this.props.mail && this.props.mail.money !== undefined) {
+      this.setState({
+        money: this.props.mail.money,
+        value: this.props.mail.value
+      });
+    }
+    if (this.props.imageLinks && this.props.imageLinks.length !== 0)
+      this.setState({ downloadLinks: this.props.imageLinks }, () => {
+        // this.imageDownload();
+      });
   };
 
   valChange = e => {
@@ -98,6 +129,77 @@ class Mail extends React.Component {
       },
       () => this.validateChange()
     );
+  };
+
+  generateGuid = () => {
+    var result, i, j;
+    result = "";
+    for (j = 0; j < 32; j++) {
+      if (j === 8 || j === 12 || j === 16 || j === 20) result = result + "-";
+      i = Math.floor(Math.random() * 16)
+        .toString(16)
+        .toUpperCase();
+      result = result + i;
+    }
+    return result;
+  };
+
+  // imageDownload = () => {
+  //   const self = this;
+
+  //   if (self.state.downloadLinks.length !== 0) {
+  //     const path = self.state.downloadLinks[0].fileURL;
+  //     axios
+  //       .get(path)
+  //       .then(function(response) {
+  //         console.log("IMAGE DAT", response);
+  //         let tempImages = self.state.images;
+  //         tempImages.push(response.data);
+  //         self.setState({ images: tempImages }, () => {
+  //           let newFileList = self.state.downloadLinks;
+  //           newFileList.shift();
+  //           self.setState({ downloadLinks: newFileList }, () => {
+  //             self.imageDownload();
+  //           });
+  //         });
+  //       })
+  //       .catch(function(error) {
+  //         console.log("Error Downloading Image", error);
+  //       });
+  //   }
+  // };
+
+  imageUpload = () => {
+    const self = this;
+    if (self.state.files.length !== 0) {
+      const path = "profileData/" + self.props.objectId + "/" + "images";
+      const pic = new Blob([self.state.files[0]], {
+        type: self.state.files[0].type
+      });
+      let nameSplit = self.state.files[0].name.split(".");
+      Backendless.Files.saveFile(
+        path,
+        self.generateGuid() + "." + nameSplit[1],
+        pic,
+        true
+      )
+        .then(function(fileURL) {
+          let linkList = self.state.imageLinks;
+          linkList.push(fileURL);
+          self.setState({ imageLinks: linkList }, () => {
+            let newFileList = self.state.files;
+            newFileList.shift();
+            self.setState({ files: newFileList }, () => {
+              self.imageUpload();
+            });
+          });
+        })
+        .catch(function(error) {
+          console.log("error - " + error.message);
+        });
+    } else {
+      self.sendMail();
+    }
   };
 
   sendMail = () => {
@@ -126,6 +228,7 @@ class Mail extends React.Component {
       from: this.props.getName,
       to: mailTo,
       content: this.state.text,
+      imageLinks: this.state.imageLinks,
       seen: false
     };
     // const jsonData = {
@@ -253,7 +356,13 @@ class Mail extends React.Component {
     this.setState(
       {
         open: false,
+        image: false,
+        imageLinks: [],
         text: "",
+        money: false,
+        files: [],
+        value: 0,
+        showImages: false,
         Errors: {
           message: ""
         }
@@ -290,6 +399,24 @@ class Mail extends React.Component {
 
   componentDidMount() {
     this.isExpandable();
+    const script = document.createElement("script");
+    script.id = "stripe-js";
+    script.src = "https://js.stripe.com/v3/";
+    script.async = false;
+
+    document.body.appendChild(script);
+    if (window.Stripe) {
+      this.setState({
+        stripe: window.Stripe(API_K[5])
+      });
+    } else {
+      document.querySelector("#stripe-js").addEventListener("load", () => {
+        // Create Stripe instance once Stripe.js loads
+        this.setState({
+          stripe: window.Stripe(API_K[5])
+        });
+      });
+    }
   }
 
   getName() {
@@ -302,11 +429,51 @@ class Mail extends React.Component {
   openDialog = () => {
     this.setState({ show: true, mail: this.props.mail });
   };
+  handleSave = files => {
+    //Saving files to state for further use and closing Modal.
+    this.setState({
+      files: files
+    });
+  };
+  handleImage = () => {
+    this.setState({
+      image: !this.state.image
+    });
+  };
+  dropZone = () => {
+    if (!this.state.image) return "Add Image";
+    else return "Min DragZone";
+  };
+
+  getSubject = () => {
+    if (this.props.subject && this.props.subject.length > 0) return false;
+    else return true;
+  };
+
+  hasImages = () => {
+    if (this.state.downloadLinks.length !== 0) return false;
+    else return true;
+  };
+
+  showImages = () => {
+    this.setState({ showImages: !this.state.showImages });
+  };
+
+  displayImages = () => {
+    return this.state.downloadLinks.map((image, image_index) => {
+      console.log("Link", image);
+      return (
+        <div key={image_index} className="content">
+          <img src={image.fileURL} alt="new" width="50%" height="50%" />
+        </div>
+      );
+    });
+  };
 
   render() {
     const { classes } = this.props;
     return (
-      <div>
+      <React.Fragment>
         <Card className={classes.card}>
           <CardHeader
             title={
@@ -315,10 +482,25 @@ class Mail extends React.Component {
                 <br /> <div>To: {this.props.to}</div>
               </div>
             }
-            subheader={<div>Subject: {this.props.subject}</div>}
+            subheader={
+              <div hidden={this.getSubject()}>
+                Subject: {this.props.subject}
+              </div>
+            }
           />
+
           <CardContent>
             <CardContent>{this.props.content}</CardContent>
+            <Button
+              hidden={this.hasImages()}
+              className="m-2"
+              variant="contained"
+              color="secondary"
+              onClick={this.showImages}
+            >
+              Show Images
+            </Button>
+            <div hidden={!this.state.showImages}>{this.displayImages()}</div>
           </CardContent>
           <CardActions className={classes.actions} disableActionSpacing>
             <IconButton
@@ -336,7 +518,15 @@ class Mail extends React.Component {
           <Collapse in={this.state.expanded} timeout="auto" unmountOnExit>
             <CardContent>{this.props.reply}</CardContent>
           </Collapse>
-
+          <Button
+            hidden={!this.state.money}
+            className="m-2"
+            variant="contained"
+            color="secondary"
+            onClick={this.handlePayment}
+          >
+            Payment of: {this.state.value} CAD
+          </Button>
           <Button
             hidden={!this.state.reply}
             className="m-2"
@@ -346,7 +536,6 @@ class Mail extends React.Component {
           >
             Reply
           </Button>
-
           <Button
             hidden={this.isAdmin()}
             className="m-2"
@@ -368,6 +557,23 @@ class Mail extends React.Component {
           />
         </Card>
         <Dialog
+          open={this.state.checkout}
+          onClose={this.handlePaymentClose}
+          aria-labelledby="form-dialog-title"
+          maxWidth="md"
+          fullWidth={true}
+        >
+          <DialogTitle id="form-dialog-title">Payment</DialogTitle>
+          <StripeProvider stripe={this.state.stripe}>
+            <Checkout stripe={this.state.stripe} money={this.state.value} />
+          </StripeProvider>
+          <DialogActions>
+            <Button onClick={this.handlePaymentClose} color="primary">
+              Cancel
+            </Button>
+          </DialogActions>
+        </Dialog>
+        <Dialog
           open={this.state.open}
           onClose={this.handleClose}
           aria-labelledby="form-dialog-title"
@@ -381,6 +587,17 @@ class Mail extends React.Component {
             <FormErrors formErrors={this.state.Errors} />
           </div>
           <DialogContent>
+            <Button onClick={this.handleImage} color="primary">
+              {this.dropZone()}
+            </Button>
+            <div hidden={!this.state.image}>
+              <DropzoneArea
+                onChange={this.handleSave}
+                acceptedFiles={["image/jpeg", "image/png", "image/bmp"]}
+                filesLimit={3}
+                maxFileSize={5000000}
+              />
+            </div>
             <TextField
               margin="dense"
               id="text"
@@ -400,7 +617,7 @@ class Mail extends React.Component {
             </Button>
             <Button
               disabled={this.state.disabled}
-              onClick={this.sendMail}
+              onClick={this.imageUpload}
               color="primary"
             >
               Send
@@ -408,7 +625,7 @@ class Mail extends React.Component {
           </DialogActions>
         </Dialog>
         <br />
-      </div>
+      </React.Fragment>
     );
   }
 }

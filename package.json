@@ -15,6 +15,7 @@
     "file-system": "^2.2.2",
     "fs": "0.0.1-security",
     "google-maps-react": "^2.0.2",
+    "material-ui-dropzone": "^2.2.1",
     "material-ui-icons": "^1.0.0-beta.36",
     "material-ui-next-pickers": "0.0.16",
     "material-ui-pickers": "^2.0.4",
@@ -27,6 +28,7 @@
     "react-router": "^4.3.1",
     "react-router-dom": "^4.3.1",
     "react-scripts": "2.1.1",
+    "react-stripe-elements": "^2.0.1",
     "react-table": "^6.8.6"
   },
   "scripts": {

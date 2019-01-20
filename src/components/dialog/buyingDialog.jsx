@@ -217,6 +217,9 @@ class buyingDialog extends Component {
       selectedDeal: this.state.selectedDeal,
       subject: this.state.email.amnt + " of " + this.state.email.link,
       content: this.state.email.txt,
+      money: false,
+      value: 0,
+      imageLinks: [],
       seen: false,
       completed: false,
       reply: []

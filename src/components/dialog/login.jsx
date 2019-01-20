@@ -193,8 +193,6 @@ class Login extends Component {
             self.setState({ openRegister: false, openLogin: true });
             const objID = response.data.objectId;
             const msging = {
-              Received: "",
-              allMsgs: "",
               name: username,
               userID: objID
             };
@@ -224,6 +222,27 @@ class Login extends Component {
     );
   };
 
+  // componentDidMount() {
+  //   const script = document.createElement("script");
+  //   script.id = "stripe-js";
+  //   script.src = "https://js.stripe.com/v3/";
+  //   script.async = false;
+
+  //   document.body.appendChild(script);
+  //   if (window.Stripe) {
+  //     this.setState({
+  //       stripe: window.Stripe(API_K[5])
+  //     });
+  //   } else {
+  //     document.querySelector("#stripe-js").addEventListener("load", () => {
+  //       // Create Stripe instance once Stripe.js loads
+  //       this.setState({
+  //         stripe: window.Stripe(API_K[5])
+  //       });
+  //     });
+  //   }
+  // }
+
   setupFiles = () => {
     const self = this;
 
@@ -238,6 +257,26 @@ class Login extends Component {
     let buyingemailslink = "";
     let sellingemailslink = "";
     const path = "profileData/" + self.props.getUser().objectId;
+
+    // axios
+    //   .post(
+    //     "https://api.stripe.com/v1/accounts/",
+    //     {
+    //       country: "CAN",
+    //       type: "custom",
+    //       email: "shaivkamat@gmail.com"
+    //     },
+    //     {
+    //       headers: { Authorization: "bearer " + API_K[5] }
+    //     }
+    //   )
+    //   .then(function(response) {
+    //     console.log("Response", response);
+    //   })
+    //   .catch(function(error) {
+    //     console.log("Error", error.message);
+    //   });
+
     if (this.props.getUser().profile === null) {
       Backendless.Files.saveFile(path, "profileData.txt", emptyData, true)
         .then(function(response) {
@@ -291,25 +330,66 @@ class Login extends Component {
                                     self.props.getUser()
                                   )
                                     .then(function(response) {
-                                      const serverJson = {
-                                        objectId: self.props.getUser()
-                                          .messageID,
-                                        buyingEmails: buyingemailslink.fileURL,
-                                        buyingDataGson: buyingDatalink.fileURL,
-                                        buyingDataGsonHistory:
-                                          buyingHistorylink.fileURL,
-                                        sellingDataGson:
-                                          sellingDatalink.fileURL,
-                                        sellingDataGsonHistory:
-                                          sellingHistorylink.fileURL,
-                                        sellingEmails: sellingemailslink.fileURL
-                                      };
+                                      var whereClause =
+                                        "name = '" +
+                                        self.props.getUser().name +
+                                        "'";
+                                      var queryBuilder = Backendless.DataQueryBuilder.create().setWhereClause(
+                                        whereClause
+                                      );
                                       Backendless.Data.of("Messaging")
-                                        .save(serverJson)
-                                        .then(function(response) {
-                                          self.props.onMessageInit(response);
+                                        .find(queryBuilder)
+                                        .then(function(result) {
+                                          let updatedMessage = result[0];
+                                          updatedMessage.buyingEmails =
+                                            buyingemailslink.fileURL;
+                                          updatedMessage.buyingDataGson =
+                                            buyingDatalink.fileURL;
+                                          updatedMessage.buyingDataGsonHistory =
+                                            buyingHistorylink.fileURL;
+                                          updatedMessage.sellingDataGson =
+                                            sellingDatalink.fileURL;
+                                          updatedMessage.sellingDataGsonHistory =
+                                            sellingHistorylink.fileURL;
+                                          updatedMessage.sellingEmails =
+                                            sellingemailslink.fileURL;
+                                          Backendless.Data.of("Messaging")
+                                            .save(updatedMessage)
+                                            .then(function(response) {
+                                              self.props.getUser().messageID =
+                                                updatedMessage.objectId;
+                                              Backendless.UserService.update(
+                                                self.props.getUser()
+                                              )
+                                                .then(function(response) {
+                                                  axios
+                                                    .get(
+                                                      self.props.getUser()
+                                                        .profile
+                                                    )
+                                                    .then(function(response) {
+                                                      self.setState({
+                                                        disabled: false
+                                                      });
+                                                      self.props.onStoreInit(
+                                                        response.data
+                                                      );
+                                                    })
+                                                    .catch(function(error) {
+                                                      console.log(
+                                                        "Error",
+                                                        error
+                                                      );
+                                                    });
+                                                  self.props.onMessageInit(
+                                                    response
+                                                  );
+                                                })
+                                                .catch();
+                                            })
+                                            .catch();
                                         })
-                                        .catch();
+                                        .catch(function(error) {});
                                     })
                                     .catch();
                                 })
@@ -369,15 +449,14 @@ class Login extends Component {
               self.props.onInit(response);
               self.setState({ loggedin: true });
               self.handleClose();
-              axios
-                .get(
-                  serverURL +
-                    "data/Messaging?where=name%20%3D%20'" +
-                    jsonData.login +
-                    "'"
-                )
+              var whereClause = "name = '" + jsonData.login + "'";
+              var queryBuilder = Backendless.DataQueryBuilder.create().setWhereClause(
+                whereClause
+              );
+              Backendless.Data.of("Messaging")
+                .find(queryBuilder)
                 .then(function(response) {
-                  const messageID = response.data[0].objectId;
+                  const messageID = response[0].objectId;
                   const messageJson = { messageID: messageID };
                   const objID = self.props.getUser().objectId;
                   axios
@@ -392,14 +471,19 @@ class Login extends Component {
                           .then(function(result) {
                             self.props.onMessageInit(result);
                           })
-                          .catch(function(error) {});
+                          .catch(function(error) {
+                            console.log("Error", error);
+                          });
+                        axios
+                          .get(self.props.getUser().profile)
+                          .then(function(response) {
+                            self.setState({ disabled: false });
+                            self.props.onStoreInit(response.data);
+                          })
+                          .catch(function(error) {
+                            console.log("Error", error);
+                          });
                       }
-                      axios
-                        .get(self.props.getUser().profile)
-                        .then(function(response) {
-                          self.setState({ disabled: false });
-                          self.props.onStoreInit(response.data);
-                        });
                     })
                     .catch(function(error) {
                       console.log("Error Updating User", error.message);
@@ -672,7 +756,6 @@ class Login extends Component {
                     fullWidth
                   />
                   <TextField
-                    autoFocus
                     margin="dense"
                     id="password"
                     value={this.state.password}

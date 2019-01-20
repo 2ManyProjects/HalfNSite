@@ -17,10 +17,18 @@ class passThrough extends Component {
 
   componentWillReceiveProps(props) {
     if (props.mail !== undefined) {
+      let money = false;
+      let value = 0;
+      if (props.money !== undefined) {
+        money = props.mail.money;
+        value = props.mail.value;
+      }
       this.setState({
         buying: true,
         open: props.show,
         mail: props.mail,
+        money: money,
+        value: value,
         text: "",
         to: ""
       });
@@ -49,7 +57,11 @@ class passThrough extends Component {
     this.setState({
       open: false,
       buying: buying,
-      mail: {}
+      mail: {},
+      money: false,
+      value: 0,
+      text: "",
+      to: ""
     });
     this.props.close();
   };
@@ -71,6 +83,9 @@ class passThrough extends Component {
       selectedDeal: this.props.mail.selectedDeal,
       subject: this.props.mail.amnt + " of " + this.props.mail.link,
       content: this.state.text,
+      money: this.state.money,
+      value: this.state.value,
+      imageLinks: [],
       seen: false,
       completed: false,
       reply: []
@@ -102,6 +117,8 @@ class passThrough extends Component {
     //   });
     const whereClause = "name = '" + self.state.to + "'";
     const isBuyer = this.state.buying;
+    const money = this.state.money;
+    const value = this.state.value;
     axios
       .get(emailLink)
       .then(function(response) {
@@ -109,6 +126,8 @@ class passThrough extends Component {
         let id = self.props.mail.id;
         for (let x = 0; x < emailList.length; x++) {
           if (emailList[x].id === id) {
+            emailList[x].money = money;
+            emailList[x].value = value;
             let replies = emailList[x].reply;
             replies.push(email);
             emailList[x].reply = replies;
@@ -140,6 +159,8 @@ class passThrough extends Component {
                     let foundMail = false;
                     for (let x = 0; x < otherEmailList.length; x++) {
                       if (otherEmailList[x].id === id) {
+                        otherEmailList[x].money = money;
+                        otherEmailList[x].value = value;
                         foundMail = true;
                         let replies = otherEmailList[x].reply;
                         replies.push(email);
@@ -169,15 +190,21 @@ class passThrough extends Component {
                       true
                     )
                       .then(function(fileURL) {})
-                      .catch(function(error) {});
+                      .catch(function(error) {
+                        console.log("Error", error);
+                      });
                   })
                   .catch(function(error) {
                     console.log("Error", error);
                   });
               })
-              .catch(function(fault) {});
+              .catch(function(fault) {
+                console.log("Error", fault);
+              });
           })
-          .catch(function(error) {});
+          .catch(function(error) {
+            console.log("Error", error);
+          });
       })
       .catch(function(error) {
         console.log("Error", error);
@@ -189,7 +216,9 @@ class passThrough extends Component {
         open: false,
         mail: {},
         text: "",
-        to: ""
+        to: "",
+        value: 0,
+        money: false
       },
       () => {
         this.props.close();
@@ -216,6 +245,15 @@ class passThrough extends Component {
             value="buying"
           />
           <FormLabel component="label"> Buying Inbox </FormLabel>
+          <br />
+          <div hidden={!this.state.buying}>
+            <Switch
+              checked={this.state.money}
+              onChange={this.handleChange("money")}
+              value="money"
+            />
+            <FormLabel component="label">Send Buy Order</FormLabel>
+          </div>
           <TextField
             margin="dense"
             id="to"
@@ -231,6 +269,17 @@ class passThrough extends Component {
             id="text"
             label="Content"
             type="text"
+            onChange={this.valChange}
+            required={true}
+            multiline={true}
+            fullWidth
+          />
+          <TextField
+            hidden={!this.state.money}
+            margin="dense"
+            id="value"
+            label="Price: "
+            type="value"
             onChange={this.valChange}
             required={true}
             multiline={true}
