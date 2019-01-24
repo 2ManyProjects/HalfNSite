@@ -45,7 +45,8 @@ class MailContainer extends React.Component {
                       from={re.from}
                       to={re.to}
                       imageLinks={re.imageLinks}
-                      subject={re.title}
+                      subject={mail.subject}
+                      stripe={self.props.stripe}
                       content={re.content}
                     />
                   </div>
@@ -67,8 +68,9 @@ class MailContainer extends React.Component {
                   id={mailItem.id}
                   from={mailItem.from}
                   to={mailItem.to}
-                  subject={mailItem.title}
+                  subject={mailItem.subject}
                   content={mailItem.content}
+                  stripe={self.props.stripe}
                   reply={
                     <div>
                       <br />

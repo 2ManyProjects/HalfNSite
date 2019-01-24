@@ -15,7 +15,6 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Fade from "@material-ui/core/Fade";
 import Slider from "@material-ui/lab/Slider";
 import Backendless from "backendless";
-import API_K from "./../../keys";
 const styles = {
   root: {
     width: 300
@@ -253,25 +252,25 @@ class buyingDialog extends Component {
         Backendless.Files.saveFile(path, "buyingemails.txt", emails, true)
           .then(function(fileURL) {
             axios
-              .get(API_K[3] + "buyingemails.txt")
+              .post(
+                "https://api.backendless.com/C499EC1A-F6D2-77C2-FFCF-14A634B64900/9EB16649-E4D8-8EAC-FFF8-6B8CE47C7600/services/MyService/sendAdminMail",
+                {
+                  record: "buyingemails.txt",
+                  id: id,
+                  email: email,
+                  reply: false
+                },
+                {
+                  headers: {
+                    "Content-Type": "application/json"
+                  }
+                }
+              )
               .then(function(response) {
-                let adminEmailList = response.data;
-                adminEmailList.push(email);
-                const filePath = "profileData/" + API_K[4] + "/";
-                const adminEmails = new Blob([JSON.stringify(adminEmailList)], {
-                  type: "application/json"
-                });
-                Backendless.Files.saveFile(
-                  filePath,
-                  "buyingemails.txt",
-                  adminEmails,
-                  true
-                )
-                  .then(function(fileURL) {})
-                  .catch(function(error) {});
+                console.log("Message Init", response);
               })
               .catch(function(error) {
-                console.log("Error", error);
+                console.log("Message Error", error);
               });
           })
           .catch(function(error) {});

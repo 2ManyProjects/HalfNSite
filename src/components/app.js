@@ -31,6 +31,7 @@ class App extends Component {
         </center>
         <div hidden={!this.state.showActive}>
           <MailContainer
+            stripe={this.props.stripe}
             getUser={this.props.getUser}
             getMessage={this.props.getMessage()}
             folder="Seller"
@@ -40,6 +41,7 @@ class App extends Component {
           <MailContainer
             getUser={this.props.getUser}
             getMessage={this.props.getMessage()}
+            stripe={this.props.stripe}
             folder="Buyer"
           />
         </div>

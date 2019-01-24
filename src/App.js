@@ -39,6 +39,7 @@ class App extends Component {
     userData: {},
     messageData: {},
     snackbar: false,
+    stripe: null,
     show: {
       homePage: true,
       mailbox: false,
@@ -59,16 +60,35 @@ class App extends Component {
       .get("http://ipinfo.io?token=ce9d47e2eb3f65")
       .then(function(response) {
         const arr = response.data.loc.split(",");
+        let currentLocation = self.state.currentLocation;
+        currentLocation.lat = parseFloat(arr[0]);
+        currentLocation.lng = parseFloat(arr[1]);
         self.setState({
-          currentLocation: {
-            lat: parseFloat(arr[1]),
-            lng: parseFloat(arr[0])
-          }
+          currentLocation
         });
       })
       .catch(function(error) {
         console.log("Error", error);
       });
+
+    const script = document.createElement("script");
+    script.id = "stripe-js";
+    script.src = "https://js.stripe.com/v3/";
+    script.async = false;
+
+    document.body.appendChild(script);
+    if (window.Stripe) {
+      this.setState({
+        stripe: window.Stripe(API_K[3])
+      });
+    } else {
+      document.querySelector("#stripe-js").addEventListener("load", () => {
+        // Create Stripe instance once Stripe.js loads
+        this.setState({
+          stripe: window.Stripe(API_K[3])
+        });
+      });
+    }
   }
 
   changePage = x => {
@@ -139,16 +159,24 @@ class App extends Component {
   };
 
   initUserData = jsonData => {
+    const self = this;
     this.setState({ loggedin: true, userData: jsonData }, () => {
       if (navigator && navigator.geolocation) {
         navigator.geolocation.getCurrentPosition(pos => {
-          const coords = pos.coords;
-          this.setState({
-            currentLocation: {
-              lat: coords.latitude,
-              lng: coords.longitude
-            }
-          });
+          let currentLocation = self.state.currentLocation;
+          currentLocation.lat = pos.coords.latitude;
+          currentLocation.lng = pos.coords.longitude;
+          self.setState(
+            {
+              currentLocation
+            },
+            console.log(
+              "Position",
+              currentLocation,
+              " State ",
+              this.state.currentLocation
+            )
+          );
         });
       }
     });
@@ -364,6 +392,7 @@ class App extends Component {
         />
         <div hidden={!this.state.show.mailbox}>
           <MailBox
+            stripe={this.state.stripe}
             getUser={this.state.userData}
             getMessage={this.getMessageData}
           />

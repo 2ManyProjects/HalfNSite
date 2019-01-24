@@ -21,8 +21,8 @@ import { DropzoneArea } from "material-ui-dropzone";
 import axios from "axios";
 import Backendless from "backendless";
 import PassThrough from "./dialog/passthrough";
-import API_K from "./../keys";
 import { StripeProvider } from "react-stripe-elements";
+import "./mailStyle.scss";
 
 import Checkout from "./payment/Checkout";
 
@@ -59,6 +59,7 @@ const styles = theme => ({
 class Mail extends React.Component {
   state = {
     expanded: false,
+    isAdmin: false,
     checkout: false,
     stripe: null,
     show: false,
@@ -69,12 +70,14 @@ class Mail extends React.Component {
     image: false,
     money: false,
     value: 0,
+    imageData: "",
     imageLinks: [],
     images: [],
     downloadLinks: [],
     files: [],
     showImages: false,
     text: "",
+    clicked: [false, false, false],
     disabled: true,
     Errors: {
       message: ""
@@ -117,7 +120,7 @@ class Mail extends React.Component {
     }
     if (this.props.imageLinks && this.props.imageLinks.length !== 0)
       this.setState({ downloadLinks: this.props.imageLinks }, () => {
-        // this.imageDownload();
+        this.displayImages();
       });
   };
 
@@ -172,7 +175,7 @@ class Mail extends React.Component {
   imageUpload = () => {
     const self = this;
     if (self.state.files.length !== 0) {
-      const path = "profileData/" + self.props.objectId + "/" + "images";
+      const path = "profileData/" + self.props.objectId + "/images";
       const pic = new Blob([self.state.files[0]], {
         type: self.state.files[0].type
       });
@@ -266,7 +269,7 @@ class Mail extends React.Component {
         });
         Backendless.Files.saveFile(path, record, emails, true)
           .then(function(fileURL) {
-            if (emailLink === API_K[3] + record) {
+            if (self.state.isAdmin) {
               const whereClause = "name = '" + self.props.from + "'";
               const queryBuilder = Backendless.DataQueryBuilder.create().setWhereClause(
                 whereClause
@@ -316,34 +319,25 @@ class Mail extends React.Component {
                 .catch(function(fault) {});
             } else {
               axios
-                .get(API_K[3] + record)
-                .then(function(result) {
-                  let otherEmailList = result.data;
-                  for (let x = 0; x < emailList.length; x++) {
-                    if (otherEmailList[x].id === id) {
-                      let replies = otherEmailList[x].reply;
-                      replies.push(email);
-                      otherEmailList[x].reply = replies;
+                .post(
+                  "https://api.backendless.com/C499EC1A-F6D2-77C2-FFCF-14A634B64900/9EB16649-E4D8-8EAC-FFF8-6B8CE47C7600/services/MyService/sendAdminMail",
+                  {
+                    record: record,
+                    id: id,
+                    email: email,
+                    reply: true
+                  },
+                  {
+                    headers: {
+                      "Content-Type": "application/json"
                     }
                   }
-                  const filePath = "profileData/" + API_K[4] + "/";
-                  const otherEmails = new Blob(
-                    [JSON.stringify(otherEmailList)],
-                    {
-                      type: "application/json"
-                    }
-                  );
-                  Backendless.Files.saveFile(
-                    filePath,
-                    record,
-                    otherEmails,
-                    true
-                  )
-                    .then(function(fileURL) {})
-                    .catch(function(error) {});
+                )
+                .then(function(response) {
+                  console.log("Message Init", response);
                 })
                 .catch(function(error) {
-                  console.log("Error", error);
+                  console.log("Message Error", error);
                 });
             }
           })
@@ -362,6 +356,7 @@ class Mail extends React.Component {
         money: false,
         files: [],
         value: 0,
+        clicked: [false, false, false],
         showImages: false,
         Errors: {
           message: ""
@@ -387,9 +382,27 @@ class Mail extends React.Component {
   };
 
   isAdmin = () => {
-    if (!this.state.reply) return true;
-    else if (this.props.getName !== "Admin") return true;
-    else return false;
+    const self = this;
+    if (this.props.objectId) {
+      axios
+        .post(
+          "https://api.backendless.com/C499EC1A-F6D2-77C2-FFCF-14A634B64900/9EB16649-E4D8-8EAC-FFF8-6B8CE47C7600/services/MyService/isAdmin",
+          { id: self.props.objectId },
+          {
+            headers: {
+              "Content-Type": "application/json"
+            }
+          }
+        )
+        .then(function(response) {
+          self.setState({
+            isAdmin: response.data
+          });
+        })
+        .catch(function(error) {
+          console.log("Error", error.message);
+        });
+    }
   };
 
   validateErrors = () => {
@@ -397,26 +410,13 @@ class Mail extends React.Component {
     this.setState({ disabled: val });
   };
 
+  //this loads stripe each time, FIX IT
   componentDidMount() {
     this.isExpandable();
-    const script = document.createElement("script");
-    script.id = "stripe-js";
-    script.src = "https://js.stripe.com/v3/";
-    script.async = false;
-
-    document.body.appendChild(script);
-    if (window.Stripe) {
-      this.setState({
-        stripe: window.Stripe(API_K[5])
-      });
-    } else {
-      document.querySelector("#stripe-js").addEventListener("load", () => {
-        // Create Stripe instance once Stripe.js loads
-        this.setState({
-          stripe: window.Stripe(API_K[5])
-        });
-      });
-    }
+    this.isAdmin();
+    this.setState({
+      stripe: this.props.stripe
+    });
   }
 
   getName() {
@@ -446,6 +446,7 @@ class Mail extends React.Component {
   };
 
   getSubject = () => {
+    // console.log("Subject", this.props);
     if (this.props.subject && this.props.subject.length > 0) return false;
     else return true;
   };
@@ -460,14 +461,58 @@ class Mail extends React.Component {
   };
 
   displayImages = () => {
-    return this.state.downloadLinks.map((image, image_index) => {
-      console.log("Link", image);
+    let imageData = this.state.downloadLinks.map((image, image_index) => {
       return (
-        <div key={image_index} className="content">
-          <img src={image.fileURL} alt="new" width="50%" height="50%" />
+        <div key={image_index}>
+          <img
+            onClick={() => {
+              let clicked = [...this.state.clicked];
+              clicked[image_index] = true;
+              console.log("Thumbnail: ", clicked);
+              this.setState({ clicked }, () => {
+                this.displayImages();
+              });
+            }}
+            className="thumbnail"
+            src={image.fileURL}
+            alt="new"
+            width="50%"
+            height="50%"
+          />
+
+          <Dialog
+            open={this.state.clicked[image_index]}
+            onClose={() => {
+              let clicked = [...this.state.clicked];
+              clicked[image_index] = false;
+              console.log("On Ext: ", clicked);
+              this.setState({ clicked }, () => {
+                this.displayImages();
+              });
+            }}
+            aria-labelledby="form-dialog-title"
+          >
+            <img src={image.fileURL} alt="new" width="100%" height="100%" />
+            <DialogActions>
+              <Button
+                onClick={() => {
+                  let clicked = [...this.state.clicked];
+                  clicked[image_index] = false;
+                  console.log("On Btn: ", clicked);
+                  this.setState({ clicked }, () => {
+                    this.displayImages();
+                  });
+                }}
+                color="primary"
+              >
+                Cancel
+              </Button>
+            </DialogActions>
+          </Dialog>
         </div>
       );
     });
+    this.setState({ imageData: imageData });
   };
 
   render() {
@@ -500,7 +545,7 @@ class Mail extends React.Component {
             >
               Show Images
             </Button>
-            <div hidden={!this.state.showImages}>{this.displayImages()}</div>
+            <div hidden={!this.state.showImages}>{this.state.imageData}</div>
           </CardContent>
           <CardActions className={classes.actions} disableActionSpacing>
             <IconButton
@@ -537,7 +582,7 @@ class Mail extends React.Component {
             Reply
           </Button>
           <Button
-            hidden={this.isAdmin()}
+            hidden={!this.state.isAdmin}
             className="m-2"
             variant="contained"
             color="secondary"

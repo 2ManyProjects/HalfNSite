@@ -33,11 +33,9 @@ import API_K from "./../../keys";
 
 const APPLICATION_ID = "C499EC1A-F6D2-77C2-FFCF-14A634B64900";
 const API_KEY = API_K[0];
-const JS_KEY = API_K[1];
+// const JS_KEY = API_K[1];
 const serverURL =
   "https://api.backendless.com/" + APPLICATION_ID + "/" + API_KEY + "/";
-Backendless.initApp(APPLICATION_ID, JS_KEY);
-
 const styles = theme => ({
   root: {
     width: "100%"
@@ -113,8 +111,8 @@ class Login extends Component {
     disabled: false,
     openLogin: false,
     openRegister: false,
-    username: "Admin",
-    password: "thecowjumpsoverthemoon",
+    username: "Shaiv",
+    password: "test",
     formErrors: {
       email: "",
       password: "",
@@ -222,27 +220,6 @@ class Login extends Component {
     );
   };
 
-  // componentDidMount() {
-  //   const script = document.createElement("script");
-  //   script.id = "stripe-js";
-  //   script.src = "https://js.stripe.com/v3/";
-  //   script.async = false;
-
-  //   document.body.appendChild(script);
-  //   if (window.Stripe) {
-  //     this.setState({
-  //       stripe: window.Stripe(API_K[5])
-  //     });
-  //   } else {
-  //     document.querySelector("#stripe-js").addEventListener("load", () => {
-  //       // Create Stripe instance once Stripe.js loads
-  //       this.setState({
-  //         stripe: window.Stripe(API_K[5])
-  //       });
-  //     });
-  //   }
-  // }
-
   setupFiles = () => {
     const self = this;
 
@@ -267,7 +244,9 @@ class Login extends Component {
     //       email: "shaivkamat@gmail.com"
     //     },
     //     {
-    //       headers: { Authorization: "bearer " + API_K[5] }
+    //       headers: {
+    //         Authorization: "bearer " + "sk_test_tJDpjiPCkcFsnnHz614OhERc"
+    //       }
     //     }
     //   )
     //   .then(function(response) {
@@ -278,6 +257,26 @@ class Login extends Component {
     //   });
 
     if (this.props.getUser().profile === null) {
+      axios
+        .post(
+          "https://api.backendless.com/C499EC1A-F6D2-77C2-FFCF-14A634B64900/9EB16649-E4D8-8EAC-FFF8-6B8CE47C7600/services/MyService/initStripe",
+          { email: self.props.getUser().email },
+          {
+            headers: {
+              "Content-Type": "application/json"
+            }
+          }
+        )
+        .then(function(response) {
+          console.log("Response", response.data.data.id);
+          self.props.getUser().StripeID = response.data.data.id;
+          Backendless.UserService.update(self.props.getUser())
+            .then(function(updatedUser) {})
+            .catch(function(error) {});
+        })
+        .catch(function(error) {
+          console.log("Error", error.message);
+        });
       Backendless.Files.saveFile(path, "profileData.txt", emptyData, true)
         .then(function(response) {
           profileDatalink = response;
@@ -494,6 +493,9 @@ class Login extends Component {
                 });
             })
             .catch(function(error) {
+              this.setState({
+                disabled: false
+              });
               loginValidationErrors.password = "";
 
               if (error.message === "Request failed with status code 401") {

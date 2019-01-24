@@ -4,7 +4,11 @@ import Suggestions from "./suggestions";
 import ReactTable from "react-table";
 import "react-table/react-table.css";
 import Email from "./../dialog/buyingDialog";
+import Backendless from "backendless";
 import Button from "@material-ui/core/Button";
+// import Menu from "@material-ui/core/Menu";
+// import MenuItem from "@material-ui/core/MenuItem";
+// import { withStyles } from "@material-ui/core/styles";
 
 import API_K from "./../../keys";
 const APPLICATION_ID = "C499EC1A-F6D2-77C2-FFCF-14A634B64900";
@@ -21,7 +25,10 @@ class Search extends Component {
     userIDs: [],
     userData: [],
     tableData: [],
+    single: "",
+    popper: "",
     show: false,
+    anchorEl: null,
     profile: {}
   };
 
@@ -32,9 +39,7 @@ class Search extends Component {
       },
       () => {
         if (this.state.query && this.state.query.length > 1) {
-          if (this.state.query.length % 2 === 0) {
-            this.getInfo(false);
-          }
+          this.getInfo(false);
         }
         return false;
       }
@@ -44,40 +49,37 @@ class Search extends Component {
   handlePress = e => {
     if (e.charCode === 13) {
       e.preventDefault();
-      this.onSubmit(e);
+      this.getInfo(true);
     }
     return false;
-  };
-
-  onSubmit = e => {
-    e.preventDefault();
-    e.stopPropagation();
-    this.getInfo(true);
   };
 
   getInfo = submitting => {
     if (!submitting) {
       const self = this;
-      axios
-        .get(
-          serverURL +
-            "data/Stores?where=Name%20LIKE%20'%25" +
-            this.state.query +
-            "%25'"
-        )
-        .then(result => {
+      var whereClause = "name LIKE '" + this.state.query + "%'";
+      var queryBuilder = Backendless.DataQueryBuilder.create().setWhereClause(
+        whereClause
+      );
+      Backendless.Data.of("Stores")
+        .find(queryBuilder)
+        .then(function(results) {
           let name = "";
-          if (result.data[0] !== undefined) name = result.data[0].Name;
-          const newArr = result.data.filter(store => {
+          if (results[0] !== undefined) name = results[0].Name;
+
+          const newArr = results.filter(store => {
             const distance = self.getDistance(store.Lat, store.Long);
             if (distance < 100) return store;
             else return null;
           });
 
-          this.setState({
+          self.setState({
             results: newArr,
             storeName: name
           });
+        })
+        .catch(function(fault) {
+          // an error has occurred, the error code can be retrieved with fault.statusCode
         });
     } else {
       this.fillID();
@@ -122,10 +124,14 @@ class Search extends Component {
         tempArr = tempArr.concat(newArr);
       }
     }
-    this.setState({
-      userIDs: tempArr
-    });
-    this.fillUserData();
+    this.setState(
+      {
+        userIDs: tempArr
+      },
+      () => {
+        this.fillUserData();
+      }
+    );
   };
 
   fillUserData = () => {
@@ -268,6 +274,10 @@ class Search extends Component {
     this.setState({ show: true, profile: props });
   };
 
+  handleMenuClose = name => {
+    this.setState({ query: name, anchorEl: null });
+  };
+
   render() {
     const columns = [
       {
@@ -321,10 +331,39 @@ class Search extends Component {
             ref={input => (this.search = input)}
             onChange={this.handleInputChange}
             onKeyPress={this.handlePress}
+            // onFocus={() => {
+            //   focused = true;
+            // }}
+            // onBlur={() => {
+            //   focused = false;
+            // }}
           />
           <Suggestions results={this.state.results} />
+
+          {/* <Menu
+            id="long-menu"
+            anchorEl={anchorEl}
+            open={focused}
+            onClose={() => {
+              focused = false;
+            }}
+            PaperProps={{
+              style: {
+                maxHeight: 48 * 4.5,
+                width: 200
+              }
+            }}
+          >
+            {this.state.results.map((result, result_index) => (
+              <MenuItem
+                key={result_index}
+                onClick={this.handleMenuClose(result.Name)}
+              >
+                {result.Name}
+              </MenuItem>
+            ))}
+          </Menu> */}
           <br />
-          {/* <div hidden={!this.state.show}> */}
           <Email
             show={this.state.show}
             storeName={this.state.storeName}
@@ -336,7 +375,6 @@ class Search extends Component {
               this.setState({ show: false, deal: {} });
             }}
           />
-          {/* </div> */}
           <center>
             <ReactTable
               data={this.state.tableData}
