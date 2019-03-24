@@ -114,8 +114,8 @@ class Login extends Component {
     disabled: false,
     openLogin: false,
     openRegister: false,
-    username: "Shaiv",
-    password: "test",
+    username: "",
+    password: "",
     formErrors: {
       email: "",
       password: "",
@@ -825,7 +825,6 @@ class Login extends Component {
                     onChange={this.registerChange}
                   />
                   <TextField
-                    autoFocus
                     margin="dense"
                     id="registerName"
                     label="UserName"
@@ -835,7 +834,6 @@ class Login extends Component {
                     onChange={this.registerChange}
                   />
                   <TextField
-                    autoFocus
                     margin="dense"
                     id="registerPassword"
                     label="Password"
