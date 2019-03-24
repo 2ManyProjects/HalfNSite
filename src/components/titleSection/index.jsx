@@ -3,7 +3,7 @@ import React, { Component } from "react";
 import "./style.scss";
 import API_K from "./../../keys";
 import axios from "axios";
-import Button from "@material-ui/core/Button";
+// import Button from "@material-ui/core/Button";
 
 const APPLICATION_ID = "C499EC1A-F6D2-77C2-FFCF-14A634B64900";
 const API_KEY = API_K[0];
@@ -12,8 +12,8 @@ const serverURL =
 
 class titleSection extends Component {
   state = {
-    vote: -1,
-    tagline: "",
+    vote: 0, // -1 for votes
+    tagline: "A Friend in Every Store",
     hide: false,
     data: {}
   };
@@ -84,7 +84,7 @@ class titleSection extends Component {
       <div>
         <center>
           <br />
-          <div
+          {/* <div
             hidden={this.getHidden() || !this.props.getLogged}
             className="subtitle"
           >
@@ -110,7 +110,7 @@ class titleSection extends Component {
             color="primary"
           >
             Friends with Employee Benefits
-          </Button>
+          </Button> */}
           <span className="subtitle">{this.renderTagline()}</span>
         </center>
       </div>
