@@ -57,23 +57,26 @@ class App extends Component {
 
   componentDidMount() {
     const self = this;
-    axios
-      .get("https://ipinfo.io?token=ce9d47e2eb3f65")
-      .then(function(response) {
-        // console.log("USER IP " + response.data.ip);
-        const arr = response.data.loc.split(",");
-        let currentLocation = self.state.currentLocation;
-        currentLocation.lat = parseFloat(arr[0]);
-        currentLocation.lng = parseFloat(arr[1]);
-        self.setState({
-          currentLocation,
-          ip: response.data.ip
+    console.log("Updated");
+    function getLocation() {
+      axios
+        .get("https://ipinfo.io?token=ce9d47e2eb3f65")
+        .then(function(response) {
+          // console.log("USER IP " + response.data.ip);
+          const arr = response.data.loc.split(",");
+          let currentLocation = self.state.currentLocation;
+          currentLocation.lat = parseFloat(arr[0]);
+          currentLocation.lng = parseFloat(arr[1]);
+          self.setState({
+            currentLocation,
+            ip: response.data.ip
+          });
+        })
+        .catch(function(error) {
+          console.log("Error", error);
         });
-      })
-      .catch(function(error) {
-        console.log("Error", error);
-      });
-
+    }
+    getLocation();
     const script = document.createElement("script");
     script.id = "stripe-js";
     script.src = "https://js.stripe.com/v3/";
