@@ -677,13 +677,13 @@ class Login extends Component {
         <div className={classes.root}>
           <AppBar position="static">
             <Toolbar>
-              <IconButton
+              {/* <IconButton
                 className={classes.menuButton}
                 color="inherit"
                 aria-label="Open drawer"
               >
                 <MenuIcon />
-              </IconButton>
+              </IconButton> */}
               <Typography
                 className={classes.title}
                 variant="h4"
