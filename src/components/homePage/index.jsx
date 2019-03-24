@@ -12,7 +12,7 @@ class HomePage extends Component {
     return (
       <React.Fragment>
         <TitleSection getLogged={this.props.getLogged} />
-        <StoreCardSection />
+        {/* <StoreCardSection /> */}
         <center>
           <StoreSearch
             getCoords={this.props.getCoords}
