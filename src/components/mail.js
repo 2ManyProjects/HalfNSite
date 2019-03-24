@@ -543,7 +543,7 @@ class Mail extends React.Component {
               color="secondary"
               onClick={this.showImages}
             >
-              Show Images
+              {this.state.showImages ? "Hide" : "Show"} Images
             </Button>
             <div hidden={!this.state.showImages}>{this.state.imageData}</div>
           </CardContent>

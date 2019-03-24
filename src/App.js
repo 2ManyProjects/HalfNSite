@@ -35,6 +35,7 @@ const styles = theme => ({
 
 class App extends Component {
   state = {
+    ip: "0.0.0.0",
     loggedin: false,
     userData: {},
     messageData: {},
@@ -59,12 +60,14 @@ class App extends Component {
     axios
       .get("http://ipinfo.io?token=ce9d47e2eb3f65")
       .then(function(response) {
+        // console.log("USER IP " + response.data.ip);
         const arr = response.data.loc.split(",");
         let currentLocation = self.state.currentLocation;
         currentLocation.lat = parseFloat(arr[0]);
         currentLocation.lng = parseFloat(arr[1]);
         self.setState({
-          currentLocation
+          currentLocation,
+          ip: response.data.ip
         });
       })
       .catch(function(error) {
@@ -389,6 +392,7 @@ class App extends Component {
           getAuth={this.getAuthToken}
           getUser={this.getUserData}
           updatePage={this.changePage}
+          ip={this.state.ip}
         />
         <div hidden={!this.state.show.mailbox}>
           <MailBox

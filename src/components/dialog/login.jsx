@@ -25,6 +25,8 @@ import DialogContent from "@material-ui/core/DialogContent";
 import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import Backendless from "backendless";
+import qs from "qs";
+import TermsOfService from "./termsOfService";
 
 import axios from "axios";
 import { FormErrors } from "./FormErrors";
@@ -108,6 +110,7 @@ const styles = theme => ({
 
 class Login extends Component {
   state = {
+    tos: false, 
     disabled: false,
     openLogin: false,
     openRegister: false,
@@ -165,11 +168,14 @@ class Login extends Component {
     if (x === 0) this.setState({ openLogin: false, openRegister: false });
     else this.setState({ openRegister: false, openLogin: false });
   };
+
+  //have the TOS popup here, proceed only if accepted
   handleRegister = () => {
     const self = this;
     this.setState(
       {
-        disabled: true
+        disabled: true,
+        tos: false
       },
       () => {
         let formErrors = this.state.formErrors;
@@ -198,7 +204,7 @@ class Login extends Component {
               .post(serverURL + "data/Messaging", msging)
               .then(function(response) {
                 console.log("Messaging", response.data);
-                //self.handleClose();
+                self.setState({disabled: false});
               })
               .catch(function(error) {
                 console.log("Error", error.message);
@@ -214,7 +220,8 @@ class Login extends Component {
             self.setState({
               formErrors: formErrors
             });
-            console.log("Error", error.message);
+            console.log("Error", error);
+            self.setState({disabled: false});
           });
       }
     );
@@ -234,33 +241,24 @@ class Login extends Component {
     let buyingemailslink = "";
     let sellingemailslink = "";
     const path = "profileData/" + self.props.getUser().objectId;
-
-    // axios
-    //   .post(
-    //     "https://api.stripe.com/v1/accounts/",
-    //     {
-    //       country: "CAN",
-    //       type: "custom",
-    //       email: "shaivkamat@gmail.com"
-    //     },
-    //     {
-    //       headers: {
-    //         Authorization: "bearer " + "sk_test_tJDpjiPCkcFsnnHz614OhERc"
-    //       }
-    //     }
-    //   )
-    //   .then(function(response) {
-    //     console.log("Response", response);
-    //   })
-    //   .catch(function(error) {
-    //     console.log("Error", error.message);
-    //   });
-
     if (this.props.getUser().profile === null) {
+      const jsonData = {
+        country: "CA",
+        type: "custom",
+        business_type: "individual",
+        email: self.props.getUser().email, 
+        default_currency: "cad",
+        tos_acceptance: {
+          date: Math.trunc(this.props.getUser().created / 1000), 
+          ip: this.props.ip,
+        }
+      }
+      console.log(" QUERY " + qs.stringify(jsonData));
+      // { email: self.props.getUser().email, date: Math.trunc(this.props.getUser().created / 1000), ip: this.props.ip }
       axios
         .post(
           "https://api.backendless.com/C499EC1A-F6D2-77C2-FFCF-14A634B64900/9EB16649-E4D8-8EAC-FFF8-6B8CE47C7600/services/MyService/initStripe",
-          { email: self.props.getUser().email },
+          jsonData,
           {
             headers: {
               "Content-Type": "application/json"
@@ -268,6 +266,7 @@ class Login extends Component {
           }
         )
         .then(function(response) {
+          console.log("Response", response);
           console.log("Response", response.data.data.id);
           self.props.getUser().StripeID = response.data.data.id;
           Backendless.UserService.update(self.props.getUser())
@@ -275,7 +274,7 @@ class Login extends Component {
             .catch(function(error) {});
         })
         .catch(function(error) {
-          console.log("Error", error.message);
+          console.log("Error", error);
         });
       Backendless.Files.saveFile(path, "profileData.txt", emptyData, true)
         .then(function(response) {
@@ -493,7 +492,7 @@ class Login extends Component {
                 });
             })
             .catch(function(error) {
-              this.setState({
+              self.setState({
                 disabled: false
               });
               loginValidationErrors.password = "";
@@ -860,10 +859,16 @@ class Login extends Component {
                         this.state.formErrors.email.length === 0 &&
                         this.state.formErrors.name.length === 0 &&
                         this.state.formErrors.password.length === 0
+                      ) || (
+                        this.state.registerName.length === 0 ||
+                        this.state.registerEmail.length === 0 ||
+                        this.state.registerPassword.length === 0
                       ) || this.state.disabled
                     }
                     hidden={this.state.loggedin}
-                    onClick={this.handleRegister}
+                    onClick={() => {
+                      this.setState({ tos: true});
+                    }}
                     color="primary"
                   >
                     Register
@@ -873,6 +878,13 @@ class Login extends Component {
                   </Button>
                 </DialogActions>
               </Dialog>
+
+              <TermsOfService
+                open={this.state.tos}
+                accepted={this.handleRegister}
+                declined={() => {
+                  this.setState({ tos: false});
+                }}/>
 
               <div className={classes.grow} />
               <div className={classes.sectionDesktop}>
