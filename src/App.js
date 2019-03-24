@@ -58,7 +58,7 @@ class App extends Component {
   componentDidMount() {
     const self = this;
     axios
-      .get("http://ipinfo.io?token=ce9d47e2eb3f65")
+      .get("https://ipinfo.io?token=ce9d47e2eb3f65")
       .then(function(response) {
         // console.log("USER IP " + response.data.ip);
         const arr = response.data.loc.split(",");
