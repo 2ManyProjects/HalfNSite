@@ -14,7 +14,7 @@
 importScripts("https://storage.googleapis.com/workbox-cdn/releases/3.6.3/workbox-sw.js");
 
 importScripts(
-  "/2ManyProjects/HalfNSite/tree/test/precache-manifest.c19a91540a10d98ab8e965a677033633.js"
+  "/HalfNHalf/precache-manifest.c9da3dff6207ce470dc7df8cb014f2e5.js"
 );
 
 workbox.clientsClaim();
@@ -28,7 +28,7 @@ self.__precacheManifest = [].concat(self.__precacheManifest || []);
 workbox.precaching.suppressWarnings();
 workbox.precaching.precacheAndRoute(self.__precacheManifest, {});
 
-workbox.routing.registerNavigationRoute("/2ManyProjects/HalfNSite/tree/test/index.html", {
+workbox.routing.registerNavigationRoute("/HalfNHalf/index.html", {
   
   blacklist: [/^\/_/,/\/[^\/]+\.[^\/]+$/],
 });
