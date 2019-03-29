@@ -81,9 +81,8 @@ export class CurrentLocation extends React.Component {
   componentWillReceiveProps(props) {
     const { address } = this.props;
     if (props.address !== address) {
-      this.setState({ updated: false });
+      this.setState({ updated: false }, this.onReady);
     }
-    this.onReady();
   }
 
   onReady = () => {

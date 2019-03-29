@@ -13,6 +13,7 @@ import { Marker, GoogleApiWrapper } from "google-maps-react";
 import CurrentLocation from "./Map";
 import InfoWindowEx from "./InfoWind";
 import Api_Key from "./../../keys";
+import "./style.scss";
 let fill = 0;
 export class SellerProfile extends Component {
   constructor(props) {
@@ -45,7 +46,7 @@ export class SellerProfile extends Component {
     imageResource: 0,
     places: [],
     markerObjects: [],
-    showingInfoWindow: false, //Hides or the shows the infoWindow
+    showingInfoWindow: true, //Hides or the shows the infoWindow
     activeMarker: {}, //Shows the active marker upon click
     selectedPlace: { name: "", data: { vicinity: "", place_id: "" } } //Shows the infoWindow to the selected place upon a marker
   };
@@ -65,7 +66,7 @@ export class SellerProfile extends Component {
       imageResource: 0,
       places: [],
       markerObjects: [],
-      showingInfoWindow: false, //Hides or the shows the infoWindow
+      showingInfoWindow: true, //Hides or the shows the infoWindow
       activeMarker: {}, //Shows the active marker upon click
       selectedPlace: { name: "", data: { vicinity: "", place_id: "" } }, //Shows the infoWindow to the selected place upon a marker
       Errors: {
@@ -191,18 +192,28 @@ export class SellerProfile extends Component {
             <div className="panel panel-default warning">
               <FormErrors formErrors={this.state.Errors} />
             </div>
-            <TextField
-              autoFocus
-              margin="dense"
-              id="address"
-              value={this.state.address}
-              label="Store Name"
-              type="text"
-              onChange={this.changeAddress}
-              onKeyPress={this._handleKeyPress}
-              required={true}
-              fullWidth
-            />
+            <div className="rowC">
+              <TextField
+                autoFocus
+                margin="dense"
+                id="address"
+                value={this.state.address}
+                label="Store Name"
+                type="text"
+                onChange={this.changeAddress}
+                onKeyPress={this._handleKeyPress}
+                required={true}
+                fullWidth
+              />
+              <Button
+                onClick={() => {
+                  this.handleClose();
+                }}
+                color="secondary"
+              >
+                Close Map
+              </Button>
+            </div>
             <CurrentLocation
               centerAroundCurrentLocation
               google={this.props.google}
