@@ -8,23 +8,23 @@ self.__precacheManifest = [
     "url": "/HalfNSite/static/js/runtime~main.2b0ce411.js"
   },
   {
-    "revision": "c63290dbbd9dd1c78b7c",
-    "url": "/HalfNSite/static/js/main.284f83aa.chunk.js"
+    "revision": "1fdf7fa28ceb05ec6671",
+    "url": "/HalfNSite/static/js/main.d9783f52.chunk.js"
   },
   {
-    "revision": "77eb8a2f5a3ec64c836a",
-    "url": "/HalfNSite/static/js/2.7916637a.chunk.js"
+    "revision": "9ade45f9017ea2d844ab",
+    "url": "/HalfNSite/static/js/2.f213d5a0.chunk.js"
   },
   {
-    "revision": "c63290dbbd9dd1c78b7c",
+    "revision": "1fdf7fa28ceb05ec6671",
     "url": "/HalfNSite/static/css/main.e0b0db3e.chunk.css"
   },
   {
-    "revision": "77eb8a2f5a3ec64c836a",
+    "revision": "9ade45f9017ea2d844ab",
     "url": "/HalfNSite/static/css/2.3fe24777.chunk.css"
   },
   {
-    "revision": "abe4f46f93ca1dec3d1710b027a0497a",
+    "revision": "9d693abff461285abc6877965456be87",
     "url": "/HalfNSite/index.html"
   }
 ];
