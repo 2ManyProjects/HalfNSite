@@ -27,6 +27,7 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import Backendless from "backendless";
 import qs from "qs";
 import TermsOfService from "./termsOfService";
+import {NavLink} from "react-router-dom";
 
 import axios from "axios";
 import { FormErrors } from "./FormErrors";
@@ -610,10 +611,6 @@ class Login extends Component {
   handleMobileMenuClose = () => {
     this.setState({ mobileMoreAnchorEl: null });
   };
-  handleMenuOptions = x => {
-    this.props.updatePage(x);
-    this.handleMenuClose();
-  };
 
   render() {
     const { anchorEl, mobileMoreAnchorEl } = this.state;
@@ -629,13 +626,15 @@ class Login extends Component {
         open={isMenuOpen}
         onClose={this.handleMenuClose}
       >
-        <MenuItem onClick={() => this.handleMenuOptions(2)}>
+        <MenuItem onClick={() => this.handleMenuClose()}>
           Buyer Profile
         </MenuItem>
-        <MenuItem onClick={() => this.handleMenuOptions(1)}>
-          Seller Profile
-        </MenuItem>
-        <MenuItem onClick={() => this.handleMenuOptions(3)}>
+        <NavLink to="/sellerProfile">
+          <MenuItem onClick={() => this.handleMenuClose()}>
+            Seller Profile
+          </MenuItem>
+        </NavLink>
+        <MenuItem onClick={() => this.handleMenuClose()}>
           My account
         </MenuItem>
       </Menu>
@@ -649,20 +648,25 @@ class Login extends Component {
         open={isMobileMenuOpen}
         onClose={this.handleMobileMenuClose}
       >
-        <MenuItem onClick={() => this.props.updatePage(4)}>
+      
+      <NavLink to="/mailBox">
+        <MenuItem>
           <IconButton color="inherit">
             <Badge badgeContent={4} color="secondary">
-              <MailIcon onClick={() => this.props.updatePage(4)} />
+              <MailIcon/>
             </Badge>
           </IconButton>
           <p>Messages</p>
         </MenuItem>
-        <MenuItem onClick={() => this.props.updatePage(0)}>
+        </NavLink>
+        <NavLink to="/">
+        <MenuItem>
           <IconButton color="inherit">
-            <Home onClick={() => this.props.updatePage(0)} />
+            <Home />
           </IconButton>
           <p>HomePage</p>
         </MenuItem>
+        </NavLink>
         <MenuItem onClick={this.handleProfileMenuOpen}>
           <IconButton color="inherit">
             <AccountCircle onClick={this.handleProfileMenuOpen} />
@@ -886,12 +890,16 @@ class Login extends Component {
 
               <div className={classes.grow} />
               <div className={classes.sectionDesktop}>
-                <IconButton hidden={!this.state.loggedin} color="inherit">
-                  <Home onClick={() => this.props.updatePage(0)} />
+                <IconButton hidden={!this.state.loggedin} color="white">
+                  <NavLink to="/">
+                    <Home/>
+                  </NavLink>
                 </IconButton>
-                <IconButton hidden={!this.state.loggedin} color="inherit">
+                <IconButton hidden={!this.state.loggedin} color="white">
                   <Badge badgeContent={-10} color="secondary">
-                    <MailIcon onClick={() => this.props.updatePage(4)} />
+                    <NavLink to="/mailBox">
+                      <MailIcon/>
+                    </NavLink>
                   </Badge>
                 </IconButton>
                 {/* <IconButton color="inherit">

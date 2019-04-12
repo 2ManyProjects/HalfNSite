@@ -1,11 +1,11 @@
 import React, { Component } from "react";
 import axios from "axios";
-import Suggestions from "./suggestions";
 import ReactTable from "react-table";
 import "react-table/react-table.css";
 import Email from "./../dialog/buyingDialog";
 import Backendless from "backendless";
 import Button from "@material-ui/core/Button";
+import ReactAutocomplete from "react-autocomplete";
 // import Menu from "@material-ui/core/Menu";
 // import MenuItem from "@material-ui/core/MenuItem";
 // import { withStyles } from "@material-ui/core/styles";
@@ -20,11 +20,13 @@ class Search extends Component {
   state = {
     query: "",
     storeName: "",
+    target: null,
     results: [],
     showTable: false,
     userIDs: [],
     userData: [],
     tableData: [],
+    spacing: "",
     single: "",
     popper: "",
     show: false,
@@ -32,10 +34,12 @@ class Search extends Component {
     profile: {}
   };
 
-  handleInputChange = () => {
+  handleInputChange = e => {
+    let value = e.target.value;
+
     this.setState(
       {
-        query: this.search.value
+        query: value
       },
       () => {
         if (this.state.query && this.state.query.length > 1) {
@@ -73,10 +77,29 @@ class Search extends Component {
             else return null;
           });
 
-          self.setState({
-            results: newArr,
-            storeName: name
-          });
+          self.setState(
+            {
+              results: newArr,
+              storeName: name
+            },
+            () => {
+              let tempArr = [];
+              self.state.results.map(a => tempArr.push(a.Name));
+              const options = Array.from(new Set(tempArr)).filter(function(
+                elem,
+                pos,
+                arr
+              ) {
+                return arr.indexOf(elem) === pos;
+              });
+              let tempString = "";
+              tempString += options.map((store, index) => {
+                return "\n";
+              });
+              console.log(tempString);
+              self.setState({ spacing: tempString });
+            }
+          );
         })
         .catch(function(fault) {
           // an error has occurred, the error code can be retrieved with fault.statusCode
@@ -278,6 +301,29 @@ class Search extends Component {
     this.setState({ query: name, anchorEl: null });
   };
 
+  selectedOption = name => {
+    this.setState({ query: name }, () => {
+      this.getInfo(true);
+    });
+  };
+  setTarget = event => {
+    if (this.state.target == null)
+      this.setState({ target: event.currentTarget });
+  };
+
+  getStores = () => {
+    let tempArr = [];
+    this.state.results.map(a => tempArr.push(a.Name));
+    const options = Array.from(new Set(tempArr)).filter(function(
+      elem,
+      pos,
+      arr
+    ) {
+      return arr.indexOf(elem) === pos;
+    });
+    return options;
+  };
+
   render() {
     const columns = [
       {
@@ -326,44 +372,27 @@ class Search extends Component {
     return (
       <div>
         <form>
-          <input
-            placeholder="Search our Stores"
-            ref={input => (this.search = input)}
-            onChange={this.handleInputChange}
-            onKeyPress={this.handlePress}
-            // onFocus={() => {
-            //   focused = true;
-            // }}
-            // onBlur={() => {
-            //   focused = false;
-            // }}
-          />
-          <Suggestions results={this.state.results} />
-
-          {/* <Menu
-            id="long-menu"
-            anchorEl={anchorEl}
-            open={focused}
-            onClose={() => {
-              focused = false;
-            }}
-            PaperProps={{
-              style: {
-                maxHeight: 48 * 4.5,
-                width: 200
-              }
-            }}
-          >
-            {this.state.results.map((result, result_index) => (
-              <MenuItem
-                key={result_index}
-                onClick={this.handleMenuClose(result.Name)}
+          <ReactAutocomplete
+            items={this.getStores()}
+            shouldItemRender={(item, value) =>
+              item.toLowerCase().indexOf(value.toLowerCase()) > -1
+            }
+            getItemValue={item => item}
+            renderItem={(item, highlighted) => (
+              <div
+                key={item}
+                style={{
+                  backgroundColor: highlighted ? "#eee" : "#FFF"
+                }}
               >
-                {result.Name}
-              </MenuItem>
-            ))}
-          </Menu> */}
-          <br />
+                {item}
+              </div>
+            )}
+            value={this.state.query}
+            onChange={this.handleInputChange}
+            onSelect={this.selectedOption}
+          />
+          {this.state.spacing}
           <Email
             show={this.state.show}
             storeName={this.state.storeName}

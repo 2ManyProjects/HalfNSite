@@ -1,5 +1,6 @@
 import React, { Component } from "react";
 import "./App.css";
+import { Route, HashRouter } from "react-router-dom";
 import PropTypes from "prop-types";
 import HomePage from "./components/homePage/index";
 import NavBar from "./components/dialog/login";
@@ -9,17 +10,12 @@ import Backendless from "backendless";
 import Snackbar from "@material-ui/core/Snackbar";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
-import MailBox from "./components/app";
+import MailBox from "./components/mailBox";
 import axios from "axios";
-
-// import Button from "@material-ui/core/Button";
 import API_K from "./keys";
 
 const APPLICATION_ID = "C499EC1A-F6D2-77C2-FFCF-14A634B64900";
-// const API_KEY = API_K[0];
 const JS_KEY = API_K[1];
-// const serverURL =
-//   "https://api.backendless.com/" + APPLICATION_ID + "/" + API_KEY + "/";
 Backendless.initApp(APPLICATION_ID, JS_KEY);
 const styles = theme => ({
   button: {
@@ -77,11 +73,20 @@ class App extends Component {
 
   componentDidMount() {
     this.getLocation();
+    let pageData = (
+      <HomePage
+        getUser={this.state.userData}
+        getCoords={this.state.currentLocation}
+        getLogged={this.state.loggedin}
+        getMessage={this.state.messageData}
+      />
+    );
     const script = document.createElement("script");
     script.id = "stripe-js";
     script.src = "https://js.stripe.com/v3/";
     script.async = false;
 
+    this.setState({ mainPage: pageData });
     document.body.appendChild(script);
     if (window.Stripe) {
       this.setState({
@@ -97,61 +102,6 @@ class App extends Component {
     }
   }
 
-  changePage = x => {
-    let data;
-    switch (x) {
-      case 0:
-        data = {
-          homePage: true,
-          mailbox: false,
-          sellerPage: false,
-          buyerPage: false,
-          accountPage: false
-        };
-        break;
-      case 1:
-        data = {
-          homePage: false,
-          mailbox: false,
-          sellerPage: true,
-          buyerPage: false,
-          accountPage: false
-        };
-        break;
-      case 2:
-        data = {
-          homePage: false,
-          mailbox: false,
-          sellerPage: false,
-          buyerPage: true,
-          accountPage: false
-        };
-        break;
-      case 3:
-        data = {
-          homePage: false,
-          mailbox: false,
-          sellerPage: false,
-          buyerPage: false,
-          accountPage: true
-        };
-        break;
-      case 4:
-        data = {
-          homePage: false,
-          mailbox: true,
-          sellerPage: false,
-          buyerPage: false,
-          accountPage: false
-        };
-        break;
-      default:
-        break;
-    }
-    this.setState({ show: data }, () => {
-      // console.log("STATE", this.state.show);
-    });
-  };
   handleClick = () => {
     this.setState({ snackbar: true });
   };
@@ -387,73 +337,87 @@ class App extends Component {
   render() {
     const { classes } = this.props;
     return (
-      <React.Fragment>
-        <NavBar
-          onInit={this.initUserData}
-          onMessageInit={this.initMessageData}
-          onStoreInit={this.storeInit}
-          getAuth={this.getAuthToken}
-          getUser={this.getUserData}
-          updatePage={this.changePage}
-          ip={this.state.ip}
-        />
-        <div hidden={!this.state.show.mailbox}>
-          <MailBox
-            stripe={this.state.stripe}
-            getUser={this.state.userData}
-            getMessage={this.getMessageData}
-          />
-        </div>
-        <div hidden={!this.state.show.homePage}>
-          <HomePage
-            getUser={this.state.userData}
-            getCoords={this.state.currentLocation}
-            getLogged={this.state.loggedin}
-            getMessage={this.state.messageData}
-          />
-        </div>
-        <div hidden={!this.state.show.sellerPage}>
-          <SellerProfile
-            getUser={this.getUserData}
-            onDelete={this.handleStoreDelete}
-            onDealDelete={this.handleDealDelete}
-            onDealEdit={this.handleDealEdit}
-            onDealCreate={this.handleDealAdd}
-            onCreate={this.handleStoreCreate}
-            storeData={this.state.storeData}
-          />
-        </div>
+      <HashRouter>
         <div>
-          <Snackbar
-            anchorOrigin={{
-              vertical: "bottom",
-              horizontal: "left"
-            }}
-            open={this.state.snackbar}
-            autoHideDuration={6000}
-            onClose={this.handleClose}
-            ContentProps={{
-              "aria-describedby": "message-id"
-            }}
-            message={
-              <span id="message-id">
-                You are Already Registered to this store
-              </span>
-            }
-            action={[
-              <IconButton
-                key="close"
-                aria-label="Close"
-                color="inherit"
-                className={classes.close}
-                onClick={this.handleClose}
-              >
-                <CloseIcon />
-              </IconButton>
-            ]}
+          <NavBar
+            onInit={this.initUserData}
+            onMessageInit={this.initMessageData}
+            onStoreInit={this.storeInit}
+            getAuth={this.getAuthToken}
+            getUser={this.getUserData}
+            ip={this.state.ip}
           />
+          <Route
+            exact
+            path="/"
+            render={props => (
+              <HomePage
+                {...props}
+                getUser={this.state.userData}
+                getCoords={this.state.currentLocation}
+                getLogged={this.state.loggedin}
+                getMessage={this.state.messageData}
+              />
+            )}
+          />
+          <Route
+            path="/sellerProfile"
+            render={props => (
+              <SellerProfile
+                {...props}
+                getUser={this.getUserData}
+                onDelete={this.handleStoreDelete}
+                onDealDelete={this.handleDealDelete}
+                onDealEdit={this.handleDealEdit}
+                onDealCreate={this.handleDealAdd}
+                onCreate={this.handleStoreCreate}
+                storeData={this.state.storeData}
+              />
+            )}
+          />
+          <Route
+            path="/mailBox"
+            render={props => (
+              <MailBox
+                {...props}
+                stripe={this.state.stripe}
+                getUser={this.state.userData}
+                getMessage={this.getMessageData}
+              />
+            )}
+          />
+          <div>
+            <Snackbar
+              anchorOrigin={{
+                vertical: "bottom",
+                horizontal: "left"
+              }}
+              open={this.state.snackbar}
+              autoHideDuration={6000}
+              onClose={this.handleClose}
+              ContentProps={{
+                "aria-describedby": "message-id"
+              }}
+              message={
+                <span id="message-id">
+                  You are Already Registered to this store
+                </span>
+              }
+              action={[
+                <IconButton
+                  key="close"
+                  aria-label="Close"
+                  color="inherit"
+                  className={classes.close}
+                  onClick={this.handleClose}
+                >
+                  <CloseIcon />
+                </IconButton>
+              ]}
+            />
+          </div>
         </div>
-      </React.Fragment>
+      </HashRouter>
     );
   }
 }
@@ -463,68 +427,3 @@ App.propTypes = {
 };
 
 export default withStyles(styles)(App);
-
-//import NavBar from "./components/navBar";
-//import Counters from "./components/counters";
-// maxId: 4,
-// counters: [
-//   { id: 1, value: 0 },
-//   { id: 2, value: 0 },
-//   { id: 3, value: 0 },
-//   { id: 4, value: 0 }
-// ],
-
-/* <NavBar
-          totalcounters={this.state.counters.filter(c => c.value > 0).length}
-        />
-        <main className="container">
-          <Counters
-            onReset={this.handleReset}
-            onDelete={this.handleDelete}
-            onIncrement={this.handleIncrement}
-            onDecrement={this.handleDecrement}
-            onCreate={this.handleCreate}
-            counters={this.state.counters}
-          />
-        </main> */
-
-// handleDelete = counterId => {
-//   const counters = this.state.counters.filter(c => c.id !== counterId);
-//   this.setState({ counters: counters });
-//   console.log("delete", counterId);
-// };
-// handleCreate = () => {
-//   const newId = this.state.maxId + 1;
-//   const counters = this.state.counters.concat({
-//     id: newId,
-//     value: 0
-//   });
-//   this.setState({ counters: counters });
-//   this.setState({ maxId: newId });
-// };
-
-// handleReset = () => {
-//   const counters = this.state.counters.map(c => {
-//     c.value = 0;
-//     return c;
-//   });
-
-//   this.setState({ counters });
-// };
-
-// handleIncrement = counter => {
-//   const counters = [...this.state.counters];
-//   const index = counters.indexOf(counter);
-//   counters[index] = { ...counter };
-//   counters[index].value++;
-
-//   this.setState({ counters });
-// };
-
-// handleDecrement = counter => {
-//   const counters = [...this.state.counters];
-//   const index = counters.indexOf(counter);
-//   counters[index] = { ...counter };
-//   counters[index].value--;
-//   if (counters[index].value >= 0) this.setState({ counters });
-// };
