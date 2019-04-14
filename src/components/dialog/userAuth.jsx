@@ -1,22 +1,7 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
-import AppBar from "@material-ui/core/AppBar";
-import Toolbar from "@material-ui/core/Toolbar";
-import IconButton from "@material-ui/core/IconButton";
-import Typography from "@material-ui/core/Typography";
-import InputBase from "@material-ui/core/InputBase";
-import Badge from "@material-ui/core/Badge";
-import MenuItem from "@material-ui/core/MenuItem";
-import Menu from "@material-ui/core/Menu";
 import { fade } from "@material-ui/core/styles/colorManipulator";
 import { withStyles } from "@material-ui/core/styles";
-import MenuIcon from "@material-ui/icons/Menu";
-import SearchIcon from "@material-ui/icons/Search";
-import AccountCircle from "@material-ui/icons/AccountCircle";
-import MailIcon from "@material-ui/icons/Mail";
-// import NotificationsIcon from "@material-ui/icons/Notifications";
-import Home from "@material-ui/icons/Home";
-import MoreIcon from "@material-ui/icons/MoreVert";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import Dialog from "@material-ui/core/Dialog";
@@ -27,16 +12,14 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import Backendless from "backendless";
 import qs from "qs";
 import TermsOfService from "./termsOfService";
-import {NavLink} from "react-router-dom";
 
 import axios from "axios";
 import { FormErrors } from "./FormErrors";
 import "./style.scss";
-import API_K from "./../../keys";
+import API_K from "../../keys";
 
 const APPLICATION_ID = "C499EC1A-F6D2-77C2-FFCF-14A634B64900";
 const API_KEY = API_K[0];
-// const JS_KEY = API_K[1];
 const serverURL =
   "https://api.backendless.com/" + APPLICATION_ID + "/" + API_KEY + "/";
 const styles = theme => ({
@@ -109,13 +92,13 @@ const styles = theme => ({
   }
 });
 
-class Login extends Component {
+class UserAuth extends Component {
   state = {
-    tos: false, 
+    tos: false,
     disabled: false,
+    username: "",
     openLogin: false,
     openRegister: false,
-    username: "",
     password: "",
     formErrors: {
       email: "",
@@ -163,11 +146,6 @@ class Login extends Component {
           console.log("error " + error);
         });
     }
-  };
-
-  handleClose = x => {
-    if (x === 0) this.setState({ openLogin: false, openRegister: false });
-    else this.setState({ openRegister: false, openLogin: false });
   };
 
   //have the TOS popup here, proceed only if accepted
@@ -246,7 +224,6 @@ class Login extends Component {
       const jsonData = {
         country: "CA",
         type: "custom",
-        business_type: "individual",
         email: self.props.getUser().email, 
         default_currency: "cad",
         tos_acceptance: {
@@ -447,7 +424,8 @@ class Login extends Component {
               console.log("Login", response);
               self.props.onInit(response);
               self.setState({ loggedin: true });
-              self.handleClose();
+              self.props.loggedIn();
+              self.props.handleClose();
               var whereClause = "name = '" + jsonData.login + "'";
               var queryBuilder = Backendless.DataQueryBuilder.create().setWhereClause(
                 whereClause
@@ -503,12 +481,13 @@ class Login extends Component {
                 loginValidationErrors.password = "";
                 loginValidationErrors.loginError = "";
               }
-              if (error.message === "Request failed with status code 400") {
+              if (error.message === "Request failed with status code 400" || error.code === 3087) {
                 loginValidationErrors.loginError =
                   " Email has not been verified";
                 loginValidationErrors.username = "";
                 loginValidationErrors.password = "";
               }
+              console.log("ERROR MESSAGE: " + error.code);
               self.setState({
                 loginErrors: loginValidationErrors
               });
@@ -517,6 +496,16 @@ class Login extends Component {
       }
     );
   };
+  
+  
+  componentWillReceiveProps(props) {
+    this.setState(
+      {
+        openLogin: props.openLogin,
+        openRegister: props.openRegister
+      }
+    );
+  }
 
   loginChange = e => {
     const id = e.target.id;
@@ -595,350 +584,169 @@ class Login extends Component {
     return error.length === 0 ? "" : "has-error";
   }
 
-  handleProfileMenuOpen = event => {
-    this.setState({ anchorEl: event.currentTarget });
-  };
-
-  handleMenuClose = () => {
-    this.setState({ anchorEl: null });
-    this.handleMobileMenuClose();
-  };
-
-  handleMobileMenuOpen = event => {
-    this.setState({ mobileMoreAnchorEl: event.currentTarget });
-  };
-
-  handleMobileMenuClose = () => {
-    this.setState({ mobileMoreAnchorEl: null });
-  };
-
   render() {
-    const { anchorEl, mobileMoreAnchorEl } = this.state;
-    const { classes } = this.props;
-    const isMenuOpen = Boolean(anchorEl);
-    const isMobileMenuOpen = Boolean(mobileMoreAnchorEl);
-
-    const renderMenu = (
-      <Menu
-        anchorEl={anchorEl}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-        open={isMenuOpen}
-        onClose={this.handleMenuClose}
-      >
-        <MenuItem onClick={() => this.handleMenuClose()}>
-          Buyer Profile
-        </MenuItem>
-        <NavLink to="/sellerProfile">
-          <MenuItem onClick={() => this.handleMenuClose()}>
-            Seller Profile
-          </MenuItem>
-        </NavLink>
-        <MenuItem onClick={() => this.handleMenuClose()}>
-          My account
-        </MenuItem>
-      </Menu>
-    );
-
-    const renderMobileMenu = (
-      <Menu
-        anchorEl={mobileMoreAnchorEl}
-        anchorOrigin={{ vertical: "top", horizontal: "right" }}
-        transformOrigin={{ vertical: "top", horizontal: "right" }}
-        open={isMobileMenuOpen}
-        onClose={this.handleMobileMenuClose}
-      >
-      
-      <NavLink to="/mailBox">
-        <MenuItem>
-          <IconButton color="inherit">
-            <Badge badgeContent={4} color="secondary">
-              <MailIcon/>
-            </Badge>
-          </IconButton>
-          <p>Messages</p>
-        </MenuItem>
-        </NavLink>
-        <NavLink to="/">
-        <MenuItem>
-          <IconButton color="inherit">
-            <Home />
-          </IconButton>
-          <p>HomePage</p>
-        </MenuItem>
-        </NavLink>
-        <MenuItem onClick={this.handleProfileMenuOpen}>
-          <IconButton color="inherit">
-            <AccountCircle onClick={this.handleProfileMenuOpen} />
-          </IconButton>
-          <p>Profile</p>
-        </MenuItem>
-      </Menu>
-    );
-
+  
     return (
       <span>
-        <div className={classes.root}>
-          <AppBar position="static">
-            <Toolbar>
-              {/* <IconButton
-                className={classes.menuButton}
-                color="inherit"
-                aria-label="Open drawer"
-              >
-                <MenuIcon />
-              </IconButton> */}
-              <Typography
-                className={classes.title}
-                variant="h4"
-                color="inherit"
-                noWrap
-              >
-                HalfNHalf
-              </Typography>
-              <div className={classes.search}>
-                <div className={classes.searchIcon}>
-                  <SearchIcon />
-                </div>
-                <InputBase
-                  placeholder="Search Our Stores…"
-                  classes={{
-                    root: classes.inputRoot,
-                    input: classes.inputInput
-                  }}
-                />
-              </div>
-              <Button
+        <Dialog
+        open={this.state.openLogin}
+        onClose={this.props.handleClose}
+        aria-labelledby="form-dialog-title"
+        >
+        <DialogTitle id="form-dialog-title">Login</DialogTitle>
+        <DialogContent>
+            <DialogContentText>
+            Something should probably go here, tag line maybe?
+            </DialogContentText>
+
+            <div className="panel panel-default warning">
+            <FormErrors formErrors={this.state.loginErrors} />
+            </div>
+            <TextField
+            autoFocus
+            margin="dense"
+            id="username"
+            value={this.state.username}
+            label="Username"
+            type="username"
+            onChange={this.loginChange}
+            required={true}
+            fullWidth
+            />
+            <TextField
+            margin="dense"
+            id="password"
+            value={this.state.password}
+            label="Password"
+            type="password"
+            onChange={this.loginChange}
+            required={true}
+            fullWidth
+            />
+        </DialogContent>
+        <DialogActions>
+            <Button
+            hidden={this.state.loggedin}
+            variant="contained"
+            color="primary"
+            onClick={() => this.handleClick(1)}
+            >
+            Register
+            </Button>
+            <Button
+            disabled={this.state.disabled}
+            onClick={this.loginBackendless}
+            color="primary"
+            >
+            Login
+            </Button>
+            <Button onClick={this.props.handleClose} color="secondary">
+            Cancel
+            </Button>
+        </DialogActions>
+        </Dialog>
+
+        <Dialog
+        open={this.state.openRegister}
+        onClose={this.props.handleClose}
+        aria-labelledby="form-dialog-title"
+        >
+        <DialogTitle id="form-dialog-title">Register</DialogTitle>
+        <DialogContent>
+            <DialogContentText>
+            Please consider using a spam email service such as
+            <Button
+                variant="contained"
+                href="https://10minutemail.com"
+                target="_blank"
                 className="m-2"
-                hidden={!this.state.loggedin}
-                variant="contained"
-                color="secondary"
-                onClick={() => this.handleClick(2)}
-              >
-                LogOut
-              </Button>
-              <Button
-                className="m-2"
-                hidden={this.state.loggedin}
-                variant="contained"
-                color="primary"
-                onClick={() => this.handleClick(0)}
-              >
-                Login
-              </Button>
-              <Button
-                hidden={this.state.loggedin}
-                variant="contained"
-                color="primary"
-                onClick={() => this.handleClick(1)}
-              >
-                Register
-              </Button>
+            >
+                10 Minute Mail
+            </Button>
+            <br />
+            For the purposes of Account recovery, just remember specific
+            account details
+            </DialogContentText>
 
-              <Dialog
-                open={this.state.openLogin}
-                onClose={this.handleClose}
-                aria-labelledby="form-dialog-title"
-              >
-                <DialogTitle id="form-dialog-title">Login</DialogTitle>
-                <DialogContent>
-                  <DialogContentText>
-                    Something should probably go here, tag line maybe?
-                  </DialogContentText>
+            <div className="panel panel-default warning">
+            <FormErrors formErrors={this.state.formErrors} />
+            </div>
+            <TextField
+            autoFocus
+            margin="dense"
+            id="registerEmail"
+            label="Email Address"
+            type="email"
+            required={true}
+            fullWidth
+            onChange={this.registerChange}
+            />
+            <TextField
+            margin="dense"
+            id="registerName"
+            label="UserName"
+            type="username"
+            fullWidth
+            required={true}
+            onChange={this.registerChange}
+            />
+            <TextField
+            margin="dense"
+            id="registerPassword"
+            label="Password"
+            type="password"
+            required={true}
+            fullWidth
+            onChange={this.registerChange}
+            />
+        </DialogContent>
+        <DialogActions>
+            <Button
+            variant="contained"
+            color="primary"
+            onClick={() => this.handleClick(0)}
+            >
+            Login
+            </Button>
+            <Button
+            disabled={
+                !(
+                this.state.formErrors.email.length === 0 &&
+                this.state.formErrors.name.length === 0 &&
+                this.state.formErrors.password.length === 0
+                ) || (
+                this.state.registerName.length === 0 ||
+                this.state.registerEmail.length === 0 ||
+                this.state.registerPassword.length === 0
+                ) || this.state.disabled
+            }
+            hidden={this.state.loggedin}
+            onClick={() => {
+                this.setState({ tos: true});
+            }}
+            color="primary"
+            >
+            Register
+            </Button>
+            <Button onClick={this.props.handleClose} color="secondary">
+            Cancel
+            </Button>
+        </DialogActions>
+        </Dialog>
 
-                  <div className="panel panel-default warning">
-                    <FormErrors formErrors={this.state.loginErrors} />
-                  </div>
-                  <TextField
-                    autoFocus
-                    margin="dense"
-                    id="username"
-                    value={this.state.username}
-                    label="Username"
-                    type="username"
-                    onChange={this.loginChange}
-                    required={true}
-                    fullWidth
-                  />
-                  <TextField
-                    margin="dense"
-                    id="password"
-                    value={this.state.password}
-                    label="Password"
-                    type="password"
-                    onChange={this.loginChange}
-                    required={true}
-                    fullWidth
-                  />
-                </DialogContent>
-                <DialogActions>
-                  <Button
-                    hidden={this.state.loggedin}
-                    variant="contained"
-                    color="primary"
-                    onClick={() => this.handleClick(1)}
-                  >
-                    Register
-                  </Button>
-                  <Button
-                    disabled={this.state.disabled}
-                    onClick={this.loginBackendless}
-                    color="primary"
-                  >
-                    Login
-                  </Button>
-                  <Button onClick={this.handleClose} color="secondary">
-                    Cancel
-                  </Button>
-                </DialogActions>
-              </Dialog>
-
-              <Dialog
-                open={this.state.openRegister}
-                onClose={this.handleClose}
-                aria-labelledby="form-dialog-title"
-              >
-                <DialogTitle id="form-dialog-title">Register</DialogTitle>
-                <DialogContent>
-                  <DialogContentText>
-                    Please consider using a spam email service such as
-                    <Button
-                      variant="contained"
-                      href="https://10minutemail.com"
-                      target="_blank"
-                      className="m-2"
-                    >
-                      10 Minute Mail
-                    </Button>
-                    <br />
-                    For the purposes of Account recovery, just remember specific
-                    account details
-                  </DialogContentText>
-
-                  <div className="panel panel-default warning">
-                    <FormErrors formErrors={this.state.formErrors} />
-                  </div>
-                  <TextField
-                    autoFocus
-                    margin="dense"
-                    id="registerEmail"
-                    label="Email Address"
-                    type="email"
-                    required={true}
-                    fullWidth
-                    onChange={this.registerChange}
-                  />
-                  <TextField
-                    margin="dense"
-                    id="registerName"
-                    label="UserName"
-                    type="username"
-                    fullWidth
-                    required={true}
-                    onChange={this.registerChange}
-                  />
-                  <TextField
-                    margin="dense"
-                    id="registerPassword"
-                    label="Password"
-                    type="password"
-                    required={true}
-                    fullWidth
-                    onChange={this.registerChange}
-                  />
-                </DialogContent>
-                <DialogActions>
-                  <Button
-                    variant="contained"
-                    color="primary"
-                    onClick={() => this.handleClick(0)}
-                  >
-                    Login
-                  </Button>
-                  <Button
-                    disabled={
-                      !(
-                        this.state.formErrors.email.length === 0 &&
-                        this.state.formErrors.name.length === 0 &&
-                        this.state.formErrors.password.length === 0
-                      ) || (
-                        this.state.registerName.length === 0 ||
-                        this.state.registerEmail.length === 0 ||
-                        this.state.registerPassword.length === 0
-                      ) || this.state.disabled
-                    }
-                    hidden={this.state.loggedin}
-                    onClick={() => {
-                      this.setState({ tos: true});
-                    }}
-                    color="primary"
-                  >
-                    Register
-                  </Button>
-                  <Button onClick={this.handleClose} color="secondary">
-                    Cancel
-                  </Button>
-                </DialogActions>
-              </Dialog>
-
-              <TermsOfService
-                open={this.state.tos}
-                accepted={this.handleRegister}
-                declined={() => {
-                  this.setState({ tos: false});
-                }}/>
-
-              <div className={classes.grow} />
-              <div className={classes.sectionDesktop}>
-                <IconButton hidden={!this.state.loggedin} color="white">
-                  <NavLink to="/">
-                    <Home/>
-                  </NavLink>
-                </IconButton>
-                <IconButton hidden={!this.state.loggedin} color="white">
-                  <Badge badgeContent={-10} color="secondary">
-                    <NavLink to="/mailBox">
-                      <MailIcon/>
-                    </NavLink>
-                  </Badge>
-                </IconButton>
-                {/* <IconButton color="inherit">
-                  <Badge badgeContent={-17} color="secondary">
-                    <NotificationsIcon />
-                  </Badge>
-                </IconButton> */}
-                <IconButton
-                  hidden={!this.state.loggedin}
-                  aria-owns={isMenuOpen ? "material-appbar" : undefined}
-                  aria-haspopup="true"
-                  onClick={this.handleProfileMenuOpen}
-                  color="inherit"
-                >
-                  <AccountCircle />
-                </IconButton>
-              </div>
-              <div className={classes.sectionMobile}>
-                <IconButton
-                  hidden={!this.state.loggedin}
-                  aria-haspopup="true"
-                  onClick={this.handleMobileMenuOpen}
-                  color="inherit"
-                >
-                  <MoreIcon />
-                </IconButton>
-              </div>
-            </Toolbar>
-          </AppBar>
-          {renderMenu}
-          {renderMobileMenu}
-        </div>
+        <TermsOfService
+        open={this.state.tos}
+        accepted={this.handleRegister}
+        declined={() => {
+            this.props.declined();
+        }}/>
       </span>
     );
   }
 }
 
-Login.propTypes = {
+UserAuth.propTypes = {
   classes: PropTypes.object.isRequired
 };
 
-export default withStyles(styles)(Login);
+export default withStyles(styles)(UserAuth);

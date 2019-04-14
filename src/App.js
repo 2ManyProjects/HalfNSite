@@ -3,7 +3,7 @@ import "./App.css";
 import { Route, HashRouter } from "react-router-dom";
 import PropTypes from "prop-types";
 import HomePage from "./components/homePage/index";
-import NavBar from "./components/dialog/login";
+import NavBar from "./components/dialog/navBar";
 import SellerProfile from "./components/profile/sellerProfile";
 import { withStyles } from "@material-ui/core/styles";
 import Backendless from "backendless";
