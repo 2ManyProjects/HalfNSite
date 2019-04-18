@@ -10,7 +10,6 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Menu from "@material-ui/core/Menu";
 import { fade } from "@material-ui/core/styles/colorManipulator";
 import { withStyles } from "@material-ui/core/styles";
-import MenuIcon from "@material-ui/icons/Menu";
 import SearchIcon from "@material-ui/icons/Search";
 import AccountCircle from "@material-ui/icons/AccountCircle";
 import MailIcon from "@material-ui/icons/Mail";
@@ -18,20 +17,10 @@ import MailIcon from "@material-ui/icons/Mail";
 import Home from "@material-ui/icons/Home";
 import MoreIcon from "@material-ui/icons/MoreVert";
 import Button from "@material-ui/core/Button";
-import TextField from "@material-ui/core/TextField";
-import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import DialogTitle from "@material-ui/core/DialogTitle";
-import Backendless from "backendless";
-import qs from "qs";
-import TermsOfService from "./termsOfService";
 import { NavLink } from "react-router-dom";
 import UserAuth from "./userAuth";
 
 import axios from "axios";
-import { FormErrors } from "./FormErrors";
 import "./style.scss";
 import API_K from "../../keys";
 
@@ -158,7 +147,7 @@ class NavBar extends Component {
           console.log("Logout", response.data);
 
           self.setState({ loggedin: false });
-          window.location.reload();
+          this.props.onLogOut();
         })
         .catch(error => {
           console.log("error " + error);

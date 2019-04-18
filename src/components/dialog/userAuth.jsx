@@ -12,7 +12,8 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import Backendless from "backendless";
 import qs from "qs";
 import TermsOfService from "./termsOfService";
-
+import { withCookies, Cookies } from "react-cookie";
+import { instanceOf } from "prop-types";
 import axios from "axios";
 import { FormErrors } from "./FormErrors";
 import "./style.scss";
@@ -122,6 +123,110 @@ class UserAuth extends Component {
     anchorEl: null,
     mobileMoreAnchorEl: null
   };
+  static propTypes = {
+    cookies: instanceOf(Cookies).isRequired
+  };
+
+  constructor(props) {
+    super(props);
+    const { cookies } = this.props;
+    const token = cookies.get("AuthToken"); 
+    if(token !== undefined) {
+    axios
+      .get(serverURL + "users/isvalidusertoken/"+ token)
+      .then(response => {
+        // If request is good...
+        console.log("Result", response);
+        const isLoggedIn = response.data;
+        if(isLoggedIn) {
+          this.getPersistantUserData(token);
+        }
+      })
+      .catch(error => {
+        console.log("error " + error);
+      });
+    }
+  }
+  
+  
+  componentWillReceiveProps(props) {
+    this.setState(
+      {
+        openLogin: props.openLogin,
+        openRegister: props.openRegister
+      }
+    );
+  }
+
+  getPersistantUserData = token => {
+    const self = this; 
+    axios
+        .post(
+          serverURL + "services/UserHelper/retrieveUser", token,
+          {
+            headers: {
+              "Content-Type": "application/json",
+              'Accept': 'application/json',
+              'user-token': token
+            }
+          }
+        )
+        .then(function(response) {
+          const userData = response.data; 
+          console.log("Found Data", userData);
+          self.props.onInit(userData);
+          self.setState({ loggedin: true });
+          self.props.loggedIn();
+          self.props.handleClose();
+          var whereClause = "name = '" + userData.name + "'";
+          var queryBuilder = Backendless.DataQueryBuilder.create().setWhereClause(
+            whereClause
+          );
+          Backendless.Data.of("Messaging")
+            .find(queryBuilder)
+            .then(function(response) {
+              console.log("Persistant Data ", userData);
+              const messageID = response[0].objectId;
+              const messageJson = { messageID: messageID };
+              const objID = userData.objectId;
+              axios
+                .put(serverURL + "users/" + objID, messageJson, {
+                  headers: { "user-token":token }
+                })
+                .then(function(response) {
+                  self.setupFiles();
+                  if (self.props.getUser().profile !== null) {
+                    Backendless.Data.of("Messaging")
+                      .findById(messageID)
+                      .then(function(result) {
+                        self.props.onMessageInit(result);
+                      })
+                      .catch(function(error) {
+                        console.log("Error", error);
+                      });
+                    axios
+                      .get(self.props.getUser().profile)
+                      .then(function(response) {
+                        self.setState({ disabled: false });
+                        self.props.onStoreInit(response.data);
+                      })
+                      .catch(function(error) {
+                        console.log("Error", error);
+                      });
+                  }
+                })
+                .catch(function(error) {
+                  console.log("Error Updating User", error.message);
+                });
+            })
+            .catch(function(error) {
+              console.log("Error Finding Message", error.message);
+            });
+        })
+        .catch(function(error) {
+          console.log("Error", error);
+        });
+  }
 
   handleClick = x => {
     if (x === 0) {
@@ -235,7 +340,7 @@ class UserAuth extends Component {
       // { email: self.props.getUser().email, date: Math.trunc(this.props.getUser().created / 1000), ip: this.props.ip }
       axios
         .post(
-          "https://api.backendless.com/C499EC1A-F6D2-77C2-FFCF-14A634B64900/9EB16649-E4D8-8EAC-FFF8-6B8CE47C7600/services/MyService/initStripe",
+          serverURL + "/services/MyService/initStripe",
           jsonData,
           {
             headers: {
@@ -496,16 +601,6 @@ class UserAuth extends Component {
       }
     );
   };
-  
-  
-  componentWillReceiveProps(props) {
-    this.setState(
-      {
-        openLogin: props.openLogin,
-        openRegister: props.openRegister
-      }
-    );
-  }
 
   loginChange = e => {
     const id = e.target.id;
@@ -749,4 +844,4 @@ UserAuth.propTypes = {
   classes: PropTypes.object.isRequired
 };
 
-export default withStyles(styles)(UserAuth);
+export default withStyles(styles)(withCookies(UserAuth));

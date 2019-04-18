@@ -6,9 +6,6 @@ import Email from "./../dialog/buyingDialog";
 import Backendless from "backendless";
 import Button from "@material-ui/core/Button";
 import ReactAutocomplete from "react-autocomplete";
-// import Menu from "@material-ui/core/Menu";
-// import MenuItem from "@material-ui/core/MenuItem";
-// import { withStyles } from "@material-ui/core/styles";
 
 import API_K from "./../../keys";
 const APPLICATION_ID = "C499EC1A-F6D2-77C2-FFCF-14A634B64900";
