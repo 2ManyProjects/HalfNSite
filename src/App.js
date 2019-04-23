@@ -4,7 +4,6 @@ import CookieConsent from "react-cookie-consent";
 import { Route, HashRouter, Redirect } from "react-router-dom";
 import { withCookies, Cookies } from "react-cookie";
 import { instanceOf } from "prop-types";
-import AuthenticatedRoute from "./components/route/requireAuth";
 import PropTypes from "prop-types";
 import HomePage from "./components/homePage/homePage";
 import NavBar from "./components/dialog/navBar";
@@ -394,8 +393,9 @@ class App extends Component {
           />
           <Route
             path="/sellerProfile"
-            render={props =>
-              this.isLogged() === true ? (
+            render={
+              props => (
+                // this.isLogged() === true ? (
                 <SellerProfile
                   {...props}
                   getUser={this.getUserData}
@@ -406,28 +406,31 @@ class App extends Component {
                   onCreate={this.handleStoreCreate}
                   storeData={this.state.storeData}
                 />
-              ) : (
-                <Redirect
-                  to={{ pathname: "/", state: { from: props.location } }}
-                />
               )
+              // ) : (
+              //   <Redirect
+              //     to={{ pathname: "/", state: { from: props.location } }}
+              //   />
+              // )
             }
           />
           <Route
             path="/mailBox"
-            render={props =>
-              this.isLogged() === true ? (
+            render={
+              props => (
+                // this.isLogged() === true ? (
                 <MailBox
                   {...props}
                   stripe={this.state.stripe}
                   getUser={this.state.userData}
                   getMessage={this.getMessageData}
                 />
-              ) : (
-                <Redirect
-                  to={{ pathname: "/", state: { from: props.location } }}
-                />
               )
+              // ) : (
+              //   <Redirect
+              //     to={{ pathname: "/", state: { from: props.location } }}
+              //   />
+              // )
             }
           />
           <div>
