@@ -63,6 +63,7 @@ class App extends Component {
 
   componentDidMount() {
     this.getLocation();
+    this.isLogged();
     const script = document.createElement("script");
     script.id = "stripe-js";
     script.src = "https://js.stripe.com/v3/";
@@ -343,21 +344,27 @@ class App extends Component {
       .catch(function(error) {});
   };
 
-  isLogged = () => {
+  isLogged = async () => {
     const { cookies } = this.props;
+    const self = this;
     const token = cookies.get("AuthToken");
     if (token !== undefined) {
-      axios
+      await axios
         .get(serverURL + "users/isvalidusertoken/" + token)
-        .then(response => {
+        .then(function(response) {
           // If request is good...
           console.log("Result", response);
           const isLoggedIn = response.data;
+          self.setState({ loggedin: isLoggedIn });
           return isLoggedIn;
         })
         .catch(error => {
           console.log("error " + error);
         });
+    } else {
+      return new Promise(function(resolve, reject) {
+        resolve(false);
+      });
     }
   };
 
@@ -391,48 +398,50 @@ class App extends Component {
               />
             )}
           />
-          <Route
-            path="/sellerProfile"
-            render={
-              props => (
-                // this.isLogged() === true ? (
-                <SellerProfile
-                  {...props}
-                  getUser={this.getUserData}
-                  onDelete={this.handleStoreDelete}
-                  onDealDelete={this.handleDealDelete}
-                  onDealEdit={this.handleDealEdit}
-                  onDealCreate={this.handleDealAdd}
-                  onCreate={this.handleStoreCreate}
-                  storeData={this.state.storeData}
+
+          {this.state.loggedin ? (
+            <div>
+              <Route
+                path="/sellerProfile"
+                render={props => (
+                  <SellerProfile
+                    {...props}
+                    getUser={this.getUserData}
+                    onDelete={this.handleStoreDelete}
+                    onDealDelete={this.handleDealDelete}
+                    onDealEdit={this.handleDealEdit}
+                    onDealCreate={this.handleDealAdd}
+                    onCreate={this.handleStoreCreate}
+                    storeData={this.state.storeData}
+                  />
+                )}
+              />
+              <Route
+                path="/mailBox"
+                render={props => (
+                  <MailBox
+                    {...props}
+                    stripe={this.state.stripe}
+                    getUser={this.state.userData}
+                    getMessage={this.getMessageData}
+                  />
+                )}
+              />
+            </div>
+          ) : (
+            <Route
+              path={["/sellerProfile", "/mailBox"]}
+              render={props => (
+                <Redirect
+                  to={{
+                    pathname: "/",
+                    state: { from: props.location }
+                  }}
                 />
-              )
-              // ) : (
-              //   <Redirect
-              //     to={{ pathname: "/", state: { from: props.location } }}
-              //   />
-              // )
-            }
-          />
-          <Route
-            path="/mailBox"
-            render={
-              props => (
-                // this.isLogged() === true ? (
-                <MailBox
-                  {...props}
-                  stripe={this.state.stripe}
-                  getUser={this.state.userData}
-                  getMessage={this.getMessageData}
-                />
-              )
-              // ) : (
-              //   <Redirect
-              //     to={{ pathname: "/", state: { from: props.location } }}
-              //   />
-              // )
-            }
-          />
+              )}
+            />
+          )}
+
           <div>
             <Snackbar
               anchorOrigin={{

@@ -97,10 +97,10 @@ class UserAuth extends Component {
   state = {
     tos: false,
     disabled: false,
-    username: "",
+    username: "Shaiv",
     openLogin: false,
     openRegister: false,
-    password: "",
+    password: "test",
     formErrors: {
       email: "",
       password: "",
@@ -130,103 +130,97 @@ class UserAuth extends Component {
   constructor(props) {
     super(props);
     const { cookies } = this.props;
-    const token = cookies.get("AuthToken"); 
-    if(token !== undefined) {
-    axios
-      .get(serverURL + "users/isvalidusertoken/"+ token)
-      .then(response => {
-        // If request is good...
-        console.log("Result", response);
-        const isLoggedIn = response.data;
-        if(isLoggedIn) {
-          this.getPersistantUserData(token);
-        }
-      })
-      .catch(error => {
-        console.log("error " + error);
-      });
+    const token = cookies.get("AuthToken");
+    if (token !== undefined) {
+      axios
+        .get(serverURL + "users/isvalidusertoken/" + token)
+        .then(response => {
+          // If request is good...
+          console.log("Result", response);
+          const isLoggedIn = response.data;
+          if (isLoggedIn) {
+            this.getPersistantUserData(token);
+          }
+        })
+        .catch(error => {
+          console.log("error " + error);
+        });
     }
   }
-  
-  
+
   componentWillReceiveProps(props) {
-    this.setState(
-      {
-        openLogin: props.openLogin,
-        openRegister: props.openRegister
-      }
-    );
+    this.setState({
+      openLogin: props.openLogin,
+      openRegister: props.openRegister
+    });
   }
 
   getPersistantUserData = token => {
-    const self = this; 
+    const self = this;
     axios
-        .post(
-          serverURL + "services/UserHelper/retrieveUser", token,
-          {
-            headers: {
-              "Content-Type": "application/json",
-              'Accept': 'application/json',
-              'user-token': token
-            }
-          }
-        )
-        .then(function(response) {
-          const userData = response.data; 
-          console.log("Found Data", userData);
-          self.props.onInit(userData);
-          self.setState({ loggedin: true });
-          self.props.loggedIn();
-          self.props.handleClose();
-          var whereClause = "name = '" + userData.name + "'";
-          var queryBuilder = Backendless.DataQueryBuilder.create().setWhereClause(
-            whereClause
-          );
-          Backendless.Data.of("Messaging")
-            .find(queryBuilder)
-            .then(function(response) {
-              console.log("Persistant Data ", userData);
-              const messageID = response[0].objectId;
-              const messageJson = { messageID: messageID };
-              const objID = userData.objectId;
-              axios
-                .put(serverURL + "users/" + objID, messageJson, {
-                  headers: { "user-token":token }
-                })
-                .then(function(response) {
-                  self.setupFiles();
-                  if (self.props.getUser().profile !== null) {
-                    Backendless.Data.of("Messaging")
-                      .findById(messageID)
-                      .then(function(result) {
-                        self.props.onMessageInit(result);
-                      })
-                      .catch(function(error) {
-                        console.log("Error", error);
-                      });
-                    axios
-                      .get(self.props.getUser().profile)
-                      .then(function(response) {
-                        self.setState({ disabled: false });
-                        self.props.onStoreInit(response.data);
-                      })
-                      .catch(function(error) {
-                        console.log("Error", error);
-                      });
-                  }
-                })
-                .catch(function(error) {
-                  console.log("Error Updating User", error.message);
-                });
-            })
-            .catch(function(error) {
-              console.log("Error Finding Message", error.message);
-            });
-        })
-        .catch(function(error) {
-          console.log("Error", error);
-        });
-  }
+      .post(serverURL + "services/UserHelper/retrieveUser", token, {
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          "user-token": token
+        }
+      })
+      .then(function(response) {
+        const userData = response.data;
+        console.log("Found Data", userData);
+        self.props.onInit(userData);
+        self.setState({ loggedin: true });
+        self.props.loggedIn();
+        self.props.handleClose();
+        var whereClause = "name = '" + userData.name + "'";
+        var queryBuilder = Backendless.DataQueryBuilder.create().setWhereClause(
+          whereClause
+        );
+        Backendless.Data.of("Messaging")
+          .find(queryBuilder)
+          .then(function(response) {
+            console.log("Persistant Data ", userData);
+            const messageID = response[0].objectId;
+            const messageJson = { messageID: messageID };
+            const objID = userData.objectId;
+            axios
+              .put(serverURL + "users/" + objID, messageJson, {
+                headers: { "user-token": token }
+              })
+              .then(function(response) {
+                self.setupFiles();
+                if (self.props.getUser().profile !== null) {
+                  Backendless.Data.of("Messaging")
+                    .findById(messageID)
+                    .then(function(result) {
+                      self.props.onMessageInit(result);
+                    })
+                    .catch(function(error) {
+                      console.log("Error", error);
+                    });
+                  axios
+                    .get(self.props.getUser().profile)
+                    .then(function(response) {
+                      self.setState({ disabled: false });
+                      self.props.onStoreInit(response.data);
+                    })
+                    .catch(function(error) {
+                      console.log("Error", error);
+                    });
+                }
+              })
+              .catch(function(error) {
+                console.log("Error Updating User", error.message);
+              });
+          })
+          .catch(function(error) {
+            console.log("Error Finding Message", error.message);
+          });
+      })
+      .catch(function(error) {
+        console.log("Error", error);
+      });
+  };
 
   handleClick = x => {
     if (x === 0) {
@@ -288,7 +282,7 @@ class UserAuth extends Component {
               .post(serverURL + "data/Messaging", msging)
               .then(function(response) {
                 console.log("Messaging", response.data);
-                self.setState({disabled: false});
+                self.setState({ disabled: false });
               })
               .catch(function(error) {
                 console.log("Error", error.message);
@@ -305,7 +299,7 @@ class UserAuth extends Component {
               formErrors: formErrors
             });
             console.log("Error", error);
-            self.setState({disabled: false});
+            self.setState({ disabled: false });
           });
       }
     );
@@ -329,25 +323,21 @@ class UserAuth extends Component {
       const jsonData = {
         country: "CA",
         type: "custom",
-        email: self.props.getUser().email, 
+        email: self.props.getUser().email,
         default_currency: "cad",
         tos_acceptance: {
-          date: Math.trunc(this.props.getUser().created / 1000), 
-          ip: this.props.ip,
+          date: Math.trunc(this.props.getUser().created / 1000),
+          ip: this.props.ip
         }
-      }
+      };
       console.log(" QUERY " + qs.stringify(jsonData));
       // { email: self.props.getUser().email, date: Math.trunc(this.props.getUser().created / 1000), ip: this.props.ip }
       axios
-        .post(
-          serverURL + "/services/MyService/initStripe",
-          jsonData,
-          {
-            headers: {
-              "Content-Type": "application/json"
-            }
+        .post(serverURL + "/services/MyService/initStripe", jsonData, {
+          headers: {
+            "Content-Type": "application/json"
           }
-        )
+        })
         .then(function(response) {
           console.log("Response", response);
           console.log("Response", response.data.data.id);
@@ -586,7 +576,10 @@ class UserAuth extends Component {
                 loginValidationErrors.password = "";
                 loginValidationErrors.loginError = "";
               }
-              if (error.message === "Request failed with status code 400" || error.code === 3087) {
+              if (
+                error.message === "Request failed with status code 400" ||
+                error.code === 3087
+              ) {
                 loginValidationErrors.loginError =
                   " Email has not been verified";
                 loginValidationErrors.username = "";
@@ -680,161 +673,161 @@ class UserAuth extends Component {
   }
 
   render() {
-  
     return (
       <span>
         <Dialog
-        open={this.state.openLogin}
-        onClose={this.props.handleClose}
-        aria-labelledby="form-dialog-title"
+          open={this.state.openLogin}
+          onClose={this.props.handleClose}
+          aria-labelledby="form-dialog-title"
         >
-        <DialogTitle id="form-dialog-title">Login</DialogTitle>
-        <DialogContent>
+          <DialogTitle id="form-dialog-title">Login</DialogTitle>
+          <DialogContent>
             <DialogContentText>
-            Something should probably go here, tag line maybe?
+              Something should probably go here, tag line maybe?
             </DialogContentText>
 
             <div className="panel panel-default warning">
-            <FormErrors formErrors={this.state.loginErrors} />
+              <FormErrors formErrors={this.state.loginErrors} />
             </div>
             <TextField
-            autoFocus
-            margin="dense"
-            id="username"
-            value={this.state.username}
-            label="Username"
-            type="username"
-            onChange={this.loginChange}
-            required={true}
-            fullWidth
+              autoFocus
+              margin="dense"
+              id="username"
+              value={this.state.username}
+              label="Username"
+              type="username"
+              onChange={this.loginChange}
+              required={true}
+              fullWidth
             />
             <TextField
-            margin="dense"
-            id="password"
-            value={this.state.password}
-            label="Password"
-            type="password"
-            onChange={this.loginChange}
-            required={true}
-            fullWidth
+              margin="dense"
+              id="password"
+              value={this.state.password}
+              label="Password"
+              type="password"
+              onChange={this.loginChange}
+              required={true}
+              fullWidth
             />
-        </DialogContent>
-        <DialogActions>
+          </DialogContent>
+          <DialogActions>
             <Button
-            hidden={this.state.loggedin}
-            variant="contained"
-            color="primary"
-            onClick={() => this.handleClick(1)}
+              hidden={this.state.loggedin}
+              variant="contained"
+              color="primary"
+              onClick={() => this.handleClick(1)}
             >
-            Register
+              Register
             </Button>
             <Button
-            disabled={this.state.disabled}
-            onClick={this.loginBackendless}
-            color="primary"
+              disabled={this.state.disabled}
+              onClick={this.loginBackendless}
+              color="primary"
             >
-            Login
+              Login
             </Button>
             <Button onClick={this.props.handleClose} color="secondary">
-            Cancel
+              Cancel
             </Button>
-        </DialogActions>
+          </DialogActions>
         </Dialog>
 
         <Dialog
-        open={this.state.openRegister}
-        onClose={this.props.handleClose}
-        aria-labelledby="form-dialog-title"
+          open={this.state.openRegister}
+          onClose={this.props.handleClose}
+          aria-labelledby="form-dialog-title"
         >
-        <DialogTitle id="form-dialog-title">Register</DialogTitle>
-        <DialogContent>
+          <DialogTitle id="form-dialog-title">Register</DialogTitle>
+          <DialogContent>
             <DialogContentText>
-            Please consider using a spam email service such as
-            <Button
+              Please consider using a spam email service such as
+              <Button
                 variant="contained"
                 href="https://10minutemail.com"
                 target="_blank"
                 className="m-2"
-            >
+              >
                 10 Minute Mail
-            </Button>
-            <br />
-            For the purposes of Account recovery, just remember specific
-            account details
+              </Button>
+              <br />
+              For the purposes of Account recovery, just remember specific
+              account details
             </DialogContentText>
 
             <div className="panel panel-default warning">
-            <FormErrors formErrors={this.state.formErrors} />
+              <FormErrors formErrors={this.state.formErrors} />
             </div>
             <TextField
-            autoFocus
-            margin="dense"
-            id="registerEmail"
-            label="Email Address"
-            type="email"
-            required={true}
-            fullWidth
-            onChange={this.registerChange}
+              autoFocus
+              margin="dense"
+              id="registerEmail"
+              label="Email Address"
+              type="email"
+              required={true}
+              fullWidth
+              onChange={this.registerChange}
             />
             <TextField
-            margin="dense"
-            id="registerName"
-            label="UserName"
-            type="username"
-            fullWidth
-            required={true}
-            onChange={this.registerChange}
+              margin="dense"
+              id="registerName"
+              label="UserName"
+              type="username"
+              fullWidth
+              required={true}
+              onChange={this.registerChange}
             />
             <TextField
-            margin="dense"
-            id="registerPassword"
-            label="Password"
-            type="password"
-            required={true}
-            fullWidth
-            onChange={this.registerChange}
+              margin="dense"
+              id="registerPassword"
+              label="Password"
+              type="password"
+              required={true}
+              fullWidth
+              onChange={this.registerChange}
             />
-        </DialogContent>
-        <DialogActions>
+          </DialogContent>
+          <DialogActions>
             <Button
-            variant="contained"
-            color="primary"
-            onClick={() => this.handleClick(0)}
+              variant="contained"
+              color="primary"
+              onClick={() => this.handleClick(0)}
             >
-            Login
+              Login
             </Button>
             <Button
-            disabled={
+              disabled={
                 !(
-                this.state.formErrors.email.length === 0 &&
-                this.state.formErrors.name.length === 0 &&
-                this.state.formErrors.password.length === 0
-                ) || (
-                this.state.registerName.length === 0 ||
-                this.state.registerEmail.length === 0 ||
-                this.state.registerPassword.length === 0
-                ) || this.state.disabled
-            }
-            hidden={this.state.loggedin}
-            onClick={() => {
-                this.setState({ tos: true});
-            }}
-            color="primary"
+                  this.state.formErrors.email.length === 0 &&
+                  this.state.formErrors.name.length === 0 &&
+                  this.state.formErrors.password.length === 0
+                ) ||
+                (this.state.registerName.length === 0 ||
+                  this.state.registerEmail.length === 0 ||
+                  this.state.registerPassword.length === 0) ||
+                this.state.disabled
+              }
+              hidden={this.state.loggedin}
+              onClick={() => {
+                this.setState({ tos: true });
+              }}
+              color="primary"
             >
-            Register
+              Register
             </Button>
             <Button onClick={this.props.handleClose} color="secondary">
-            Cancel
+              Cancel
             </Button>
-        </DialogActions>
+          </DialogActions>
         </Dialog>
 
         <TermsOfService
-        open={this.state.tos}
-        accepted={this.handleRegister}
-        declined={() => {
+          open={this.state.tos}
+          accepted={this.handleRegister}
+          declined={() => {
             this.props.declined();
-        }}/>
+          }}
+        />
       </span>
     );
   }

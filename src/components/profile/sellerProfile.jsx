@@ -14,7 +14,6 @@ import CurrentLocation from "./Map";
 import InfoWindowEx from "./InfoWind";
 import Api_Key from "./../../keys";
 import "./style.scss";
-let fill = 0;
 export class SellerProfile extends Component {
   constructor(props) {
     super(props);
@@ -146,19 +145,6 @@ export class SellerProfile extends Component {
     }
   };
 
-  componentWillReceiveProps(props) {
-    const { storeData } = this.props;
-    if (props.storeData !== storeData || fill === 1) {
-      fill = fill + 1;
-      const sortedArray = storeData.sort(function(a, b) {
-        if (a.name < b.name) return -1;
-        else if (a.name > b.name) return 1;
-        return 0;
-      });
-      this.setState({ storeData: sortedArray });
-    }
-  }
-
   render() {
     const { onDealDelete, onDealEdit, onDelete, onDealCreate } = this.props;
     const data = this.state.places;
@@ -167,7 +153,7 @@ export class SellerProfile extends Component {
         <Button onClick={this.handleOpen} variant="contained" color="primary">
           Add Store
         </Button>
-        {this.state.storeData.map(storecard => (
+        {this.props.storeData.map(storecard => (
           <Cards
             key={storecard.ID}
             onDelete={onDelete}

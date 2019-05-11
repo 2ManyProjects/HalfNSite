@@ -556,7 +556,7 @@ class SimpleCard extends Component {
             {this.props.storecard.address}
           </Typography>
           <br />
-          <center>
+          {this.props.storecard.storeDeals.length >= 2 && (
             <ReactTable
               data={this.props.storecard.storeDeals}
               columns={columns}
@@ -568,7 +568,7 @@ class SimpleCard extends Component {
               showPageJump={false}
               showPagination={false}
             />
-          </center>
+          )}
 
           <div>
             <Snackbar
